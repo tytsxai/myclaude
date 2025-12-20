@@ -19,7 +19,7 @@ from typing import Any, Dict, Iterable, List, Optional
 
 try:
     import jsonschema  # type: ignore
-except (ModuleNotFoundError, ImportError):  # pragma: no cover
+except ImportError:  # pragma: no cover
     jsonschema = None
 
 DEFAULT_INSTALL_DIR = "~/.claude"
