@@ -87,18 +87,47 @@ codeagent-wrapper "refactor @src/auth.ts and @src/middleware.ts"
 codeagent-wrapper "analyze @src for security issues"
 ```
 
-### 3. Session Management
+### 3. Session Management & Iterative Command
+
+Session management enables the **closed-loop iterative command pattern** where the main AI (Commander) continuously directs sub-agents (Executors) until task completion.
 
 ```bash
 # First task
 codeagent-wrapper "add validation to user form"
 # Output includes: SESSION_ID: 019a7247-ac9d-71f3-89e2-a823dbd8fd14
 
-# Resume session
+# Resume session to continue commanding
 codeagent-wrapper resume 019a7247-ac9d-71f3-89e2-a823dbd8fd14 - <<'EOF'
 Now add error messages for each validation rule
 EOF
 ```
+
+**Iterative Command Pattern** (used by /dev workflow):
+```bash
+# Initial execution
+codeagent-wrapper --parallel <<'EOF'
+---TASK---
+id: auth-api
+...
+EOF
+
+# If task failed, resume with fix instructions
+codeagent-wrapper --resume <session_id> - <<'EOF'
+Previous execution failed with:
+- Exit code: 1
+- Error: Test assertion failed
+
+Please fix the issue and run tests again.
+EOF
+
+# If coverage insufficient, resume with test instructions
+codeagent-wrapper --resume <session_id> - <<'EOF'
+Coverage is 75%, target is 90%.
+Please add more tests for uncovered paths.
+EOF
+```
+
+**Key Principle**: Commander maintains global state and makes iteration decisions. Executors are stateless workers that receive instructions and return results.
 
 ### 4. Parallel Execution
 
