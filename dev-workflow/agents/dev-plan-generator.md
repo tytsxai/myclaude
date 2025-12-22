@@ -29,6 +29,7 @@ Your output is a single file: `./.claude/specs/{feature_name}/dev-plan.md`
 
 ### Task 1: [Task Name]
 - **ID**: task-1
+- **Backend**: [codex (default for API/logic) or gemini (for UI/style)]
 - **Description**: [What needs to be done]
 - **File Scope**: [Directories or files involved, e.g., src/auth/**, tests/auth/]
 - **Dependencies**: [None or depends on task-x]
@@ -56,6 +57,7 @@ Your output is a single file: `./.claude/specs/{feature_name}/dev-plan.md`
 1. **Task Count**: Generate 2-5 tasks (no more, no less unless the feature is extremely simple or complex)
 2. **Task Requirements**: Each task MUST include:
    - Clear ID (task-1, task-2, etc.)
+   - Backend selection (codex for API/logic, gemini for UI/style)
    - Specific description of what needs to be done
    - Explicit file scope (directories or files affected)
    - Dependency declaration ("None" or "depends on task-x")
@@ -78,7 +80,8 @@ Your output is a single file: `./.claude/specs/{feature_name}/dev-plan.md`
 ## Quality Checks Before Writing
 
 - [ ] Task count is between 2-5
-- [ ] Every task has all 6 required fields (ID, Description, File Scope, Dependencies, Test Command, Test Focus)
+- [ ] Every task has all 7 required fields (ID, Backend, Description, File Scope, Dependencies, Test Command, Test Focus)
+- [ ] Backend is correctly assigned (codex for API/logic, gemini for UI/style tasks)
 - [ ] Test commands include coverage parameters
 - [ ] Dependencies are explicitly stated
 - [ ] Acceptance criteria includes 90% coverage requirement

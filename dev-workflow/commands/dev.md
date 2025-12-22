@@ -55,7 +55,7 @@ These rules have HIGHEST PRIORITY and override all other instructions:
   2. Evaluate implementation options with trade-offs
   3. Make architectural decisions
   4. Break down into 2-5 parallelizable tasks with dependencies
-  5. Determine if UI work is needed (check for .css/.tsx/.vue files)
+  5. Determine if UI work is needed (requires BOTH: component files + style usage)
 
   Output the analysis following the structure below.
   EOF
@@ -69,7 +69,10 @@ These rules have HIGHEST PRIORITY and override all other instructions:
 
   **UI Detection Requirements**:
   - During analysis, output whether the task needs UI work (yes/no) and the evidence
-  - UI criteria: presence of style assets (.css, .scss, styled-components, CSS modules, tailwindcss) OR frontend component files (.tsx, .jsx, .vue)
+  - UI criteria: BOTH conditions must be met:
+    1. Frontend component files exist (.tsx, .jsx, .vue)
+    2. Style usage detected (CSS imports, className/class attributes, styled-components, CSS modules, or Tailwind classes)
+  - Pure logic components without styling do NOT trigger UI mode
 
   **What the AI backend does in Analysis Mode** (when invoked via codeagent-wrapper):
   1. **Explore Codebase**: Use Glob, Grep, Read to understand structure, patterns, architecture
@@ -106,7 +109,7 @@ These rules have HIGHEST PRIORITY and override all other instructions:
   - Clear requirements with single implementation path
 
 - **Step 3: Generate Development Documentation**
-  - invoke agent dev-plan-generator
+  - Use Task tool with `subagent_type='dev-plan-generator'` to invoke the agent
   - When creating `dev-plan.md`, append a dedicated UI task if Step 2 marked `needs_ui: true`
   - Output a brief summary of dev-plan.md:
     - Number of tasks and their IDs
@@ -121,6 +124,7 @@ These rules have HIGHEST PRIORITY and override all other instructions:
 - **Step 4: Parallel Development Execution** ⚠️ CODEAGENT-WRAPPER ONLY - NO DIRECT EDITS
   - MUST use Bash tool to invoke `codeagent-wrapper --parallel` for ALL code changes
   - NEVER use Edit, Write, MultiEdit, or Task tools to modify code directly
+  - **Context Efficiency**: Default output is summary mode (table + failed details only). Full output saved to log files.
   - Build ONE `--parallel` config that includes all tasks in `dev-plan.md` and submit it once via Bash tool:
     ```bash
     # One shot submission - wrapper handles topology + concurrency
@@ -129,7 +133,7 @@ These rules have HIGHEST PRIORITY and override all other instructions:
     id: [task-id-1]
     backend: codex
     workdir: .
-    dependencies: [optional, comma-separated ids]
+    dependencies:
     ---CONTENT---
     Task: [task-id-1]
     Reference: @.claude/specs/{feature_name}/dev-plan.md
@@ -141,7 +145,7 @@ These rules have HIGHEST PRIORITY and override all other instructions:
     id: [task-id-2]
     backend: gemini
     workdir: .
-    dependencies: [optional, comma-separated ids]
+    dependencies: [task-id-1]
     ---CONTENT---
     Task: [task-id-2]
     Reference: @.claude/specs/{feature_name}/dev-plan.md
@@ -150,13 +154,28 @@ These rules have HIGHEST PRIORITY and override all other instructions:
     Deliverables: code + unit tests + coverage ≥90% + coverage summary
     EOF
     ```
+  - **Task field order**: `id → backend → workdir → dependencies → ---CONTENT---`
+  - **Dependencies format**: comma-separated task IDs, or empty if none
   - **Note**: Use `workdir: .` (current directory) for all tasks unless specific subdirectory is required
+  - **Output format**: Summary table with coverage + log paths. Use `--full-output` flag only if debugging needed.
   - Execute independent tasks concurrently; serialize conflicting ones; track coverage reports
 
 - **Step 5: Coverage Validation**
-  - Validate each task’s coverage:
-    - All ≥90% → pass
-    - Any <90% → request more tests (max 2 rounds)
+  - Coverage is auto-extracted and shown in summary table
+  - Parse coverage from table output (Coverage column)
+  - Validate each task's coverage:
+    - All ≥90% → pass, proceed to Step 6
+    - Any <90% → retry that task with additional test request:
+      ```bash
+      codeagent-wrapper --backend <original-backend> - <<'EOF'
+      Task: Add more tests for [task-id]
+      Reference: @.claude/specs/{feature_name}/dev-plan.md
+      Current coverage: [X]%
+      Target: ≥90%
+      Focus: [uncovered areas from coverage report]
+      EOF
+      ```
+    - Max 2 retry rounds per task; if still fails, report to user with coverage details
 
 - **Step 6: Completion Summary**
   - Provide completed task list, coverage per task, key file changes
@@ -164,9 +183,14 @@ These rules have HIGHEST PRIORITY and override all other instructions:
 **Error Handling**
 - **codeagent-wrapper failure**: Retry once with same input; if still fails, log error and ask user for guidance
 - **Insufficient coverage (<90%)**: Request more tests from the failed task (max 2 rounds); if still fails, report to user
+- **Partial parallel failure**:
+  - Failed tasks are isolated; successful tasks remain committed
+  - Retry only failed tasks individually: `codeagent-wrapper --backend <backend> - <<'EOF' ... EOF`
+  - If retry fails, report failed task IDs and allow user to decide: skip, manual fix, or abort
 - **Dependency conflicts**:
   - Circular dependencies: codeagent-wrapper will detect and fail with error; revise task breakdown to remove cycles
   - Missing dependencies: Ensure all task IDs referenced in `dependencies` field exist
+  - Dependent task failure: Tasks depending on a failed task are automatically skipped; retry parent first
 - **Parallel execution timeout**: Individual tasks timeout after 2 hours (configurable via CODEX_TIMEOUT); failed tasks can be retried individually
 - **Backend unavailable**: If codex/claude/gemini CLI not found, fail immediately with clear error message
 

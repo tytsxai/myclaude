@@ -32,7 +32,11 @@ Done (generate summary)
 ### 2. codeagent Analysis & UI Detection
 - Call codeagent to analyze the request in plan mode style
 - Extract: core functions, technical points, task list (2–5 items)
-- UI auto-detection: needs UI work when task involves style assets (.css, .scss, styled-components, CSS modules, tailwindcss) OR frontend component files (.tsx, .jsx, .vue); output yes/no plus evidence
+- UI auto-detection: needs UI work when BOTH conditions are met:
+  1. Frontend component files exist (.tsx, .jsx, .vue)
+  2. Style usage detected (CSS imports, className/class attributes, styled-components, CSS modules, or Tailwind classes)
+- Pure logic components without styling do NOT trigger UI mode
+- Output: yes/no plus evidence
 
 ### 3. Generate Dev Doc
 - Call the **dev-plan-generator** agent
@@ -84,7 +88,10 @@ Only one file—minimal and clear.
 - **dev-plan-generator agent**: generate dev doc (subagent via Task tool, saves context)
 
 ## UI Auto-Detection & Backend Routing
-- **UI detection standard**: style files (.css, .scss, styled-components, CSS modules, tailwindcss) OR frontend component code (.tsx, .jsx, .vue) trigger `needs_ui: true`
+- **UI detection standard**: BOTH conditions must be met:
+  1. Frontend component files exist (.tsx, .jsx, .vue)
+  2. Style usage detected (CSS imports, className/class, styled-components, CSS modules, Tailwind classes)
+- **Pure logic components**: Do NOT trigger `needs_ui: true`
 - **Flow impact**: Step 2 auto-detects UI work; Step 3 appends a separate UI task in `dev-plan.md` when detected
 - **Backend split**: backend/API tasks use codex backend (default); UI tasks force gemini backend
 - **Implementation**: Orchestrator invokes codeagent skill with appropriate backend parameter per task type
@@ -129,7 +136,7 @@ Output:
 - Task 1: Backend API
 - Task 2: Password hashing
 - Task 3: Frontend form
-UI detection: needs_ui = true (tailwindcss classes in frontend form)
+UI detection: needs_ui = true (component: .tsx form + style: Tailwind classes)
 
 # Step 3: Generate doc
 dev-plan.md generated with backend + UI tasks ✓
