@@ -696,7 +696,7 @@ func buildCodexArgs(cfg *Config, targetArg string) []string {
 		"exec",
 		"--dangerously-bypass-approvals-and-sandbox",
 		"-m", "gpt-5.2-codex",
-		"-c", "model_reasoning_effort=low",
+		"-c", "model_reasoning_effort=medium",
 		"-c", "enable_compaction=true",
 		"--skip-git-repo-check",
 	}
