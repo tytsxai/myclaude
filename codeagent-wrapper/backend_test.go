@@ -101,26 +101,6 @@ func TestClaudeBuildArgs_GeminiAndCodexModes(t *testing.T) {
 		}
 	})
 
-	t.Run("codex build args omits bypass flag by default", func(t *testing.T) {
-		backend := CodexBackend{}
-		cfg := &Config{Mode: "new", WorkDir: "/tmp"}
-		got := backend.BuildArgs(cfg, "task")
-		want := []string{
-			"exec",
-			"--dangerously-bypass-approvals-and-sandbox",
-			"-m", "gpt-5.2-codex",
-			"-c", "model_reasoning_effort=medium",
-			"-c", "enable_compaction=true",
-			"--skip-git-repo-check",
-			"-C", "/tmp",
-			"--json",
-			"task",
-		}
-		if !reflect.DeepEqual(got, want) {
-			t.Fatalf("got %v, want %v", got, want)
-		}
-	})
-
 	t.Run("codex build args always includes bypass flag", func(t *testing.T) {
 		// Our implementation always uses --dangerously-bypass-approvals-and-sandbox
 		backend := CodexBackend{}
@@ -194,6 +174,9 @@ func TestLoadMinimalEnvSettings(t *testing.T) {
 
 	t.Run("non-string values are ignored", func(t *testing.T) {
 		dir := filepath.Join(home, ".claude")
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			t.Fatalf("MkdirAll: %v", err)
+		}
 		path := filepath.Join(dir, "settings.json")
 		data := []byte(`{"env":{"GOOD":"ok","BAD":123,"ALSO_BAD":true}}`)
 		if err := os.WriteFile(path, data, 0o600); err != nil {
@@ -214,6 +197,9 @@ func TestLoadMinimalEnvSettings(t *testing.T) {
 
 	t.Run("oversized file returns empty", func(t *testing.T) {
 		dir := filepath.Join(home, ".claude")
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			t.Fatalf("MkdirAll: %v", err)
+		}
 		path := filepath.Join(dir, "settings.json")
 		data := bytes.Repeat([]byte("a"), maxClaudeSettingsBytes+1)
 		if err := os.WriteFile(path, data, 0o600); err != nil {
