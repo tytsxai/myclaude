@@ -2731,7 +2731,7 @@ func TestVersionFlag(t *testing.T) {
 			t.Errorf("exit = %d, want 0", code)
 		}
 	})
-	want := "codeagent-wrapper version 5.3.0\n"
+	want := "codeagent-wrapper version 5.4.0\n"
 	if output != want {
 		t.Fatalf("output = %q, want %q", output, want)
 	}
@@ -2745,7 +2745,7 @@ func TestVersionShortFlag(t *testing.T) {
 			t.Errorf("exit = %d, want 0", code)
 		}
 	})
-	want := "codeagent-wrapper version 5.3.0\n"
+	want := "codeagent-wrapper version 5.4.0\n"
 	if output != want {
 		t.Fatalf("output = %q, want %q", output, want)
 	}
@@ -2759,7 +2759,7 @@ func TestVersionLegacyAlias(t *testing.T) {
 			t.Errorf("exit = %d, want 0", code)
 		}
 	})
-	want := "codex-wrapper version 5.3.0\n"
+	want := "codex-wrapper version 5.4.0\n"
 	if output != want {
 		t.Fatalf("output = %q, want %q", output, want)
 	}
