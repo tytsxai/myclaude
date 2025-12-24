@@ -5,10 +5,10 @@
   "version": "1.0.0",
   "author": {
     "name": "Claude Code Dev Workflows",
-    "url": "https://github.com/cexll/myclaude"
+    "url": "https://github.com/tytsxai/myclaude"
   },
-  "homepage": "https://github.com/cexll/myclaude",
-  "repository": "https://github.com/cexll/myclaude",
+  "homepage": "https://github.com/tytsxai/myclaude",
+  "repository": "https://github.com/tytsxai/myclaude",
   "license": "MIT",
   "keywords": [
     "requirements",
@@ -21,9 +21,7 @@
   ],
   "category": "workflows",
   "strict": false,
-  "commands": [
-    "./commands/requirements-pilot.md"
-  ],
+  "commands": ["./commands/requirements-pilot.md"],
   "agents": [
     "./agents/requirements-generate.md",
     "./agents/requirements-code.md",

@@ -8,13 +8,13 @@
 
 ```bash
 # Install everything with one command
-/plugin marketplace add cexll/myclaude
+/plugin marketplace add tytsxai/myclaude
 ```
 
 ### Option 2: Make Install
 
 ```bash
-git clone https://github.com/cexll/myclaude.git
+git clone https://github.com/tytsxai/myclaude.git
 cd myclaude
 make install
 ```
@@ -316,7 +316,7 @@ cp output-styles/*.md ~/.config/claude/output-styles/
 
 ## 📞 Get Help
 
-- **Issues**: [GitHub Issues](https://github.com/cexll/myclaude/issues)
+- **Issues**: [GitHub Issues](https://github.com/tytsxai/myclaude/issues)
 - **Documentation**: [docs/](.)
 - **Examples**: Check `.claude/specs/` after running workflows
 - **Make Help**: Run `make help` for all commands

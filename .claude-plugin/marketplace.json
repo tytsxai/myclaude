@@ -3,7 +3,7 @@
   "owner": {
     "name": "Claude Code Dev Workflows",
     "email": "contact@example.com",
-    "url": "https://github.com/cexll/myclaude"
+    "url": "https://github.com/tytsxai/myclaude"
   },
   "metadata": {
     "description": "Professional multi-agent development workflows with Requirements-Driven and BMAD methodologies, featuring 16+ specialized agents and 12+ commands",
@@ -17,10 +17,10 @@
       "version": "1.0.0",
       "author": {
         "name": "Claude Code Dev Workflows",
-        "url": "https://github.com/cexll/myclaude"
+        "url": "https://github.com/tytsxai/myclaude"
       },
-      "homepage": "https://github.com/cexll/myclaude",
-      "repository": "https://github.com/cexll/myclaude",
+      "homepage": "https://github.com/tytsxai/myclaude",
+      "repository": "https://github.com/tytsxai/myclaude",
       "license": "MIT",
       "keywords": [
         "requirements",
@@ -33,9 +33,7 @@
       ],
       "category": "workflows",
       "strict": false,
-      "commands": [
-        "./commands/requirements-pilot.md"
-      ],
+      "commands": ["./commands/requirements-pilot.md"],
       "agents": [
         "./agents/requirements-generate.md",
         "./agents/requirements-code.md",
@@ -50,10 +48,10 @@
       "version": "1.0.0",
       "author": {
         "name": "Claude Code Dev Workflows",
-        "url": "https://github.com/cexll/myclaude"
+        "url": "https://github.com/tytsxai/myclaude"
       },
-      "homepage": "https://github.com/cexll/myclaude",
-      "repository": "https://github.com/cexll/myclaude",
+      "homepage": "https://github.com/tytsxai/myclaude",
+      "repository": "https://github.com/tytsxai/myclaude",
       "license": "MIT",
       "keywords": [
         "bmad",
@@ -67,9 +65,7 @@
       ],
       "category": "workflows",
       "strict": false,
-      "commands": [
-        "./commands/bmad-pilot.md"
-      ],
+      "commands": ["./commands/bmad-pilot.md"],
       "agents": [
         "./agents/bmad-po.md",
         "./agents/bmad-architect.md",
@@ -87,10 +83,10 @@
       "version": "1.0.0",
       "author": {
         "name": "Claude Code Dev Workflows",
-        "url": "https://github.com/cexll/myclaude"
+        "url": "https://github.com/tytsxai/myclaude"
       },
-      "homepage": "https://github.com/cexll/myclaude",
-      "repository": "https://github.com/cexll/myclaude",
+      "homepage": "https://github.com/tytsxai/myclaude",
+      "repository": "https://github.com/tytsxai/myclaude",
       "license": "MIT",
       "keywords": [
         "code",
@@ -131,10 +127,10 @@
       "version": "1.0.0",
       "author": {
         "name": "Claude Code Dev Workflows",
-        "url": "https://github.com/cexll/myclaude"
+        "url": "https://github.com/tytsxai/myclaude"
       },
-      "homepage": "https://github.com/cexll/myclaude",
-      "repository": "https://github.com/cexll/myclaude",
+      "homepage": "https://github.com/tytsxai/myclaude",
+      "repository": "https://github.com/tytsxai/myclaude",
       "license": "MIT",
       "keywords": [
         "codex",
@@ -146,9 +142,7 @@
       ],
       "category": "essentials",
       "strict": false,
-      "skills": [
-        "./SKILL.md"
-      ]
+      "skills": ["./SKILL.md"]
     },
     {
       "name": "gemini-cli",
@@ -157,10 +151,10 @@
       "version": "1.0.0",
       "author": {
         "name": "Claude Code Dev Workflows",
-        "url": "https://github.com/cexll/myclaude"
+        "url": "https://github.com/tytsxai/myclaude"
       },
-      "homepage": "https://github.com/cexll/myclaude",
-      "repository": "https://github.com/cexll/myclaude",
+      "homepage": "https://github.com/tytsxai/myclaude",
+      "repository": "https://github.com/tytsxai/myclaude",
       "license": "MIT",
       "keywords": [
         "gemini",
@@ -171,9 +165,7 @@
       ],
       "category": "essentials",
       "strict": false,
-      "skills": [
-        "./SKILL.md"
-      ]
+      "skills": ["./SKILL.md"]
     },
     {
       "name": "dev-workflow",
@@ -182,10 +174,10 @@
       "version": "1.0.0",
       "author": {
         "name": "Claude Code Dev Workflows",
-        "url": "https://github.com/cexll/myclaude"
+        "url": "https://github.com/tytsxai/myclaude"
       },
-      "homepage": "https://github.com/cexll/myclaude",
-      "repository": "https://github.com/cexll/myclaude",
+      "homepage": "https://github.com/tytsxai/myclaude",
+      "repository": "https://github.com/tytsxai/myclaude",
       "license": "MIT",
       "keywords": [
         "dev",
@@ -198,12 +190,8 @@
       ],
       "category": "workflows",
       "strict": false,
-      "commands": [
-        "./commands/dev.md"
-      ],
-      "agents": [
-        "./agents/dev-plan-generator.md"
-      ]
+      "commands": ["./commands/dev.md"],
+      "agents": ["./agents/dev-plan-generator.md"]
     }
   ]
 }

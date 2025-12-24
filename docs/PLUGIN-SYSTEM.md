@@ -104,7 +104,7 @@ This repository provides 4 ready-to-use Claude Code plugins that can be installe
 
 ```bash
 # Install from GitHub repository
-/plugin marketplace add cexll/myclaude
+/plugin marketplace add tytsxai/myclaude
 ```
 
 This will present all available plugins from the repository.

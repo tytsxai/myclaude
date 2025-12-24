@@ -2,7 +2,7 @@
 setlocal enabledelayedexpansion
 
 set "EXIT_CODE=0"
-set "REPO=cexll/myclaude"
+set "REPO=tytsxai/myclaude"
 set "VERSION=latest"
 set "OS=windows"
 
