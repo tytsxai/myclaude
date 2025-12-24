@@ -24,7 +24,7 @@ These rules have HIGHEST PRIORITY and override all other instructions:
 4. **MUST wait for user confirmation in Step 3** - Do NOT proceed to Step 4 without explicit approval
 5. **MUST invoke codeagent-wrapper --parallel for Step 4 execution** - Use Bash tool, NOT Edit/Write or Task tool
 6. **ITERATIVE coverage improvement**: Auto-retry up to 2 rounds, then require user confirmation. Stop when: (a) coverage met, (b) user stops, or (c) no improvement for 3 consecutive rounds
-7. **Fast Path for Simple Tasks**: Single-file edits (<100 lines) may skip Step 1-4 and execute directly using Edit/Write tools. Must still run tests and verify coverage. On failure, fallback to standard 6-step workflow.
+7. **Fast Path for NON-CODE only**: Only for docs (.md) and config tweaks (.env, .json). ALL code changes MUST go through codeagent-wrapper - this preserves the core philosophy of aggressive Codex invocation.
 
 **Violation of constraints 3-5 invalidates the entire workflow. Stop and restart if violated.**
 
@@ -320,43 +320,35 @@ Provide final report with: task status, coverage per task, key file changes.
 
 ---
 
-## Fast Path: Single-Task Execution
+## Fast Path: NON-CODE Only
+
+**WARNING**: Fast Path is a **performance exception**, not the default.
 
 **Trigger conditions** (ALL must be met):
-- Modified files = 1
-- Changed lines < 100
-- No new files created
-- No cross-file dependencies
-- Task type: simple bug fix / doc update / config change
+- Documentation files only (`.md`)
+- Config tweaks (`.env.example`, `.json` config)
+- ≤10 lines changed
+- **ZERO code logic changes**
 
-**Fast path flow** (skip Step 1-4):
+**ALL code changes → MUST use codeagent-wrapper!**
+
+**Fast path flow**:
 ```
-Input → Fast path eligible?
-    ├─ No → Standard 6-step workflow
-    └─ Yes → Direct execution → Test → Done
+Input → Non-code file? (.md/.json/.env)
+    ├─ Yes → Direct Edit → Done
+    └─ No → codeagent-wrapper (even for single-file code)
 ```
 
-**Fast path constraints**:
-1. Use Edit/Write tools directly (avoid codeagent-wrapper overhead)
-2. MUST run tests (e.g., `pytest tests/test_login.py`)
-3. MUST verify coverage
-4. On failure → fallback to standard 6-step workflow
-
-**Example comparison**:
+**Example**:
 ```
-❌ Standard 6-step for single null pointer fix:
+✅ Fast Path (docs/config only):
+   /dev "update README.md version"
+   → Edit README.md → Done
+
+✅ Code changes → codeagent-wrapper:
    /dev "fix null pointer at login.ts line 42"
-   → Step 1: Ask questions (wasted)
-   → Step 2: codeagent analysis (wasted)
-   → Step 3: Generate dev-plan (wasted)
-   → Step 4: Parallel execution (meaningless for 1 task)
-
-✅ Fast path for single null pointer fix:
-   /dev "fix null pointer at login.ts line 42"
-   → Fast path: eligible
-   → Read login.ts → Edit line 42
-   → pytest tests/test_login.py → Pass
-   → Done
+   → codeagent-wrapper single task → Done
+   (skips Step 1-3, but still uses Codex)
 ```
 
 ---

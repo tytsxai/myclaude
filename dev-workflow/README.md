@@ -9,6 +9,8 @@ This workflow's **defining characteristic** is aggressive, unrestricted parallel
 - **Maximum concurrency** - if tasks CAN run in parallel, they MUST
 - **High-intensity execution** - push project progress at full speed
 
+**ALL code changes go through codeagent-wrapper** - Fast Path is only for docs/config.
+
 ## Overview
 
 A lightweight development workflow designed to maximize velocity through massive parallel execution.
@@ -18,8 +20,8 @@ A lightweight development workflow designed to maximize velocity through massive
 ```
 /dev trigger
   ↓
-Fast Path check (single-file? <100 lines?)
-  ├─ Yes → Direct Edit → Test → Done
+Non-code file? (.md/.json/.env)
+  ├─ Yes → Direct Edit → Done
   └─ No ↓
 Step 1: Clarify (CONDITIONAL - skip if clear)
   ↓
@@ -27,7 +29,7 @@ Step 2: Analysis (SMART - direct tools or wrapper)
   ↓
 Step 3: Generate dev-plan.md
   ↓
-Step 4: Parallel execution (unlimited tasks)
+Step 4: codeagent-wrapper execution (unlimited parallel)
   ↓
 Step 5: Coverage validation (iterative)
   ↓
@@ -105,10 +107,9 @@ Only one file—minimal and clear.
 
 ## Key Features
 
-### ✅ Fast Path
-- Single-file edits (<100 lines) skip Step 1-4
-- Direct Edit → Test → Done
-- Fallback to full workflow on failure
+### ✅ Fast Path (NON-CODE only)
+- Docs (.md) and config (.json/.env) only
+- ALL code changes → codeagent-wrapper
 
 ### ✅ Smart Delegation
 - Small-scope (≤3 files): Use tools directly
@@ -127,16 +128,13 @@ Only one file—minimal and clear.
 
 ## Examples
 
-### Example 1: Fast Path (Single-file fix)
+### Example 1: Fast Path (Docs/Config only)
 
 ```bash
-/dev "fix null pointer at src/auth/login.ts line 42"
+/dev "update README.md version to 2.0"
 
-# Fast Path: eligible (single file, <100 lines)
-→ Read src/auth/login.ts
-→ Edit line 42: add null check
-→ pytest tests/test_login.py → Pass
-→ Done (skipped Step 1-4)
+# Fast Path: eligible (non-code file)
+→ Edit README.md → Done
 ```
 
 ### Example 2: Standard Flow (New feature)
@@ -159,19 +157,14 @@ Q: Remember login? A: Yes, JWT token
 → Coverage: 92%, 95%, 75% ✓
 ```
 
-### Example 3: Smart Delegation (Small-scope)
+### Example 3: Single-file Code Fix (via codeagent-wrapper)
 
 ```bash
-/dev "add input validation to src/auth/register.ts"
+/dev "fix null pointer at src/auth/login.ts line 42"
 
-# Step 1: Skip (clear implementation path)
-# Step 2: Small-scope (1 file) → Read directly
-→ Read src/auth/register.ts
-→ Identify validation points
-
-# Step 3-5: Standard flow
-→ dev-plan.md with 2 tasks
-→ Execute → 91% coverage ✓
+# Code change → MUST use codeagent-wrapper
+→ codeagent-wrapper single task
+→ Done (skips Step 1-3, still uses Codex)
 ```
 
 ## Directory Structure
@@ -201,27 +194,20 @@ Minimal structure, only three files.
 2. **Quality first**: enforce 90% coverage (backend) / 70% (UI)
 3. **Aggressive execution**: push project progress at full speed
 4. **Smart delegation**: right tool for right scope
-5. **Fast path first**: simple tasks skip overhead
+5. **Codex-first**: ALL code changes through codeagent-wrapper
 
 ---
 
 ## Performance Benchmark
 
-| Scenario | Fast Path | Standard Flow | Savings |
-|----------|-----------|---------------|---------|
-| Single-line fix | ~30s | ~3-5min | **85%** |
-| Single-file refactor | ~1min | ~5-8min | **80%** |
-| Multi-file feature | N/A | ~10-15min | - |
+| Scenario | Method | Time |
+|----------|--------|------|
+| Doc/config update | Fast Path (direct) | ~30s |
+| Single-file code fix | codeagent-wrapper | ~1-2min |
+| Multi-file feature | Parallel execution | ~5-15min |
 
-**Fast Path triggers**:
-- Single file, <100 lines changed
-- No cross-file dependencies
-- Clear implementation path
-
-**When to use Standard Flow**:
-- New features (unclear scope)
-- Architecture changes
-- Multi-module changes
+**Fast Path** (docs/config only): Direct Edit
+**Code changes**: Always via codeagent-wrapper (preserves Codex invocation)
 
 ---
 
