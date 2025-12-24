@@ -724,7 +724,8 @@ func generateFinalOutputWithMode(results []TaskResult, summaryOnly bool) string 
 
 func buildCodexArgs(cfg *Config, targetArg string) []string {
 	if cfg == nil {
-		panic("buildCodexArgs: nil config")
+		logError("buildCodexArgs: nil config, returning empty args")
+		return nil
 	}
 
 	var resumeSessionID string
@@ -814,6 +815,13 @@ func runCodexTaskWithContext(parentCtx context.Context, taskSpec TaskSpec, backe
 	if cfg.Mode == "resume" && strings.TrimSpace(cfg.SessionID) == "" {
 		result.ExitCode = 1
 		result.Error = "resume mode requires non-empty session_id"
+		return result
+	}
+
+	// Check backend availability before execution
+	if backend != nil && !CheckBackendAvailable(backend) {
+		result.ExitCode = 1
+		result.Error = fmt.Sprintf("backend %q not found in PATH", backend.Name())
 		return result
 	}
 

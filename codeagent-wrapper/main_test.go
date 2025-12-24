@@ -32,6 +32,10 @@ func resetTestHooks() {
 	signalStopFn = signal.Stop
 	buildCodexArgsFn = buildCodexArgs
 	selectBackendFn = selectBackend
+	checkBackendAvailableFn = func(b Backend) bool {
+		_, err := exec.LookPath(b.Command())
+		return err == nil
+	}
 	commandContext = exec.CommandContext
 	newCommandRunner = func(ctx context.Context, name string, args ...string) commandRunner {
 		return &realCmd{cmd: commandContext(ctx, name, args...)}
@@ -2315,6 +2319,7 @@ func TestRunCodexTaskFn_UsesTaskBackend(t *testing.T) {
 			},
 		}, nil
 	}
+	checkBackendAvailableFn = func(b Backend) bool { return true }
 
 	res := runCodexTaskFn(TaskSpec{ID: "task-1", Task: "payload", Backend: "Custom"}, 5)
 
@@ -3085,7 +3090,7 @@ func TestVersionLegacyAlias(t *testing.T) {
 			t.Errorf("exit = %d, want 0", code)
 		}
 	})
-	want := "codeagent-wrapper version 5.4.0\n"
+	want := "codex-wrapper version 5.4.0\n"
 	if output != want {
 		t.Fatalf("output = %q, want %q", output, want)
 	}

@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"os"
+	"os/exec"
 	"path/filepath"
 )
 
@@ -13,6 +14,17 @@ type Backend interface {
 	Name() string
 	BuildArgs(cfg *Config, targetArg string) []string
 	Command() string
+}
+
+// CheckAvailable verifies if the backend command exists in PATH.
+func CheckBackendAvailable(b Backend) bool {
+	return checkBackendAvailableFn(b)
+}
+
+// checkBackendAvailableFn is the actual implementation, can be mocked in tests
+var checkBackendAvailableFn = func(b Backend) bool {
+	_, err := exec.LookPath(b.Command())
+	return err == nil
 }
 
 type CodexBackend struct{}

@@ -200,7 +200,7 @@ Parse the structured report and classify each task:
 | Status | Indicator | Action |
 |--------|-----------|--------|
 | **Success** | `✓` + coverage ≥90% | Complete, no action needed |
-| **Warning** | `⚠️` + coverage <90% | Need more tests |
+| **Warning** | `⚠️` + coverage <90% | Optional: add more tests |
 | **Failed** | `✗` + Exit code ≠ 0 | Need fix |
 | **Skipped** | dependency failed | Fix parent first |
 
@@ -254,34 +254,31 @@ EOF
 #### 5.3 Iteration Control
 
 **Limits**:
-- Maximum 3 iterations per task
-- If still failing after 3 iterations → report to user for decision
+- No fixed iteration limit - continue until task succeeds or user decides to stop
+- If task repeatedly fails with same error → report to user for decision
 
 **Iteration Loop**:
 ```
 FOR each task needing action:
-  iteration_count = 0
-  WHILE task not complete AND iteration_count < 3:
+  previous_error = null
+  WHILE task not complete:
     IF task failed:
+      IF same error as previous_error:
+        Add to "needs_user_decision" list
+        BREAK
       --resume with fix instructions
-    ELSE IF coverage < 90%:
+      previous_error = current_error
+    ELSE IF coverage < 90% AND user wants more tests:
       --resume with test instructions
 
-    iteration_count++
     Re-evaluate task status
-
-  IF iteration_count >= 3 AND task not complete:
-    Add to "needs_user_decision" list
 ```
 
-**User Decision Request** (when max iterations reached):
+**User Decision Request** (when same error repeats):
 ```
-Task [task-id] failed to complete after 3 iterations.
+Task [task-id] failed with repeated error.
 
-History:
-- Iteration 1: [result]
-- Iteration 2: [result]
-- Iteration 3: [result]
+Error: [error message]
 
 Options:
 1. Skip this task and continue
@@ -331,8 +328,8 @@ Provide final report:
 | Error Type | Handling |
 |------------|----------|
 | **codeagent-wrapper failure** | Retry once with same input; if still fails, ask user |
-| **Insufficient coverage** | Use --resume to add tests (max 3 iterations) |
-| **Task execution failure** | Use --resume to fix (max 3 iterations) |
+| **Insufficient coverage** | Optional: use --resume to add tests if user requests |
+| **Task execution failure** | Use --resume to fix; stop if same error repeats |
 | **Dependency failure** | Fix parent first, then retry child |
 | **Circular dependencies** | Revise task breakdown to remove cycles |
 | **Timeout** | Retry individually; if persists, ask user |
@@ -344,7 +341,7 @@ Provide final report:
 
 - Code coverage ≥90%
 - 2-5 genuinely parallelizable tasks
-- Maximum 3 iterations per task
+- Iterate until success or same error repeats
 - Documentation must be minimal yet actionable
 - No verbose implementations; only essential code
 
@@ -357,4 +354,4 @@ Provide final report:
 - Show iteration count for each task
 - Highlight blockers immediately
 - Provide actionable next steps
-- Request user decision only when max iterations reached
+- Request user decision only when same error repeats
