@@ -10,7 +10,11 @@ call :detect_arch
 if errorlevel 1 goto :fail
 
 set "BINARY_NAME=codeagent-wrapper-%OS%-%ARCH%.exe"
-set "URL=https://github.com/%REPO%/releases/%VERSION%/download/%BINARY_NAME%"
+if /I "%VERSION%"=="latest" (
+    set "URL=https://github.com/%REPO%/releases/latest/download/%BINARY_NAME%"
+) else (
+    set "URL=https://github.com/%REPO%/releases/download/%VERSION%/%BINARY_NAME%"
+)
 set "TEMP_FILE=%TEMP%\codeagent-wrapper-%ARCH%-%RANDOM%.exe"
 set "DEST_DIR=%USERPROFILE%\bin"
 set "DEST=%DEST_DIR%\codeagent-wrapper.exe"

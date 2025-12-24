@@ -28,7 +28,11 @@ if [ "${VERSION}" != "latest" ] && [[ "${VERSION}" != v* ]]; then
   VERSION="v${VERSION}"
 fi
 BINARY_NAME="codeagent-wrapper-${OS}-${ARCH}"
-URL="https://github.com/${REPO}/releases/${VERSION}/download/${BINARY_NAME}"
+if [ "${VERSION}" = "latest" ]; then
+  URL="https://github.com/${REPO}/releases/latest/download/${BINARY_NAME}"
+else
+  URL="https://github.com/${REPO}/releases/download/${VERSION}/${BINARY_NAME}"
+fi
 
 TMP_FILE="$(mktemp -t codeagent-wrapper.XXXXXX)"
 cleanup_tmp() {
