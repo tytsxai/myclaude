@@ -11,13 +11,13 @@ A freshly designed lightweight development workflow with no legacy baggage, focu
   ↓
 AskUserQuestion (requirements clarification)
   ↓
-codeagent analysis (plan mode + UI auto-detection)
+codeagent-wrapper analysis (plan mode + UI auto-detection)
   ↓
 dev-plan-generator (create dev doc)
   ↓
-codeagent concurrent development (2–5 tasks, backend split)
+codeagent-wrapper concurrent development (2–5 tasks, backend split)
   ↓
-codeagent testing & verification (≥90% coverage)
+codeagent-wrapper testing & verification (≥90% coverage)
   ↓
 Done (generate summary)
 ```
@@ -29,8 +29,8 @@ Done (generate summary)
 - No scoring system, no complex logic
 - 2–3 rounds of Q&A until the requirement is clear
 
-### 2. codeagent Analysis & UI Detection
-- Call codeagent to analyze the request in plan mode style
+### 2. codeagent-wrapper Analysis & UI Detection
+- Call codeagent-wrapper to analyze the request in plan mode style
 - Extract: core functions, technical points, task list (2–5 items)
 - UI auto-detection: needs UI work when BOTH conditions are met:
   1. Frontend component files exist (.tsx, .jsx, .vue)
@@ -41,19 +41,19 @@ Done (generate summary)
 ### 3. Generate Dev Doc
 - Call the **dev-plan-generator** agent
 - Produce a single `dev-plan.md`
-- Append a dedicated UI task when Step 2 marks `needs_ui: true`
+- Ensure the UI task (if needed) is included within the 2–5 total tasks
 - Include: task breakdown, file scope, dependencies, test commands
 
 ### 4. Concurrent Development
 - Work from the task list in dev-plan.md
-- Use codeagent per task with explicit backend selection:
+- Use codeagent-wrapper per task with explicit backend selection:
   - Backend/API/DB tasks → `--backend codex` (default)
   - UI/style/component tasks → `--backend gemini` (enforced)
 - Independent tasks → run in parallel
 - Conflicting tasks → run serially
 
 ### 5. Testing & Verification
-- Each codeagent task:
+- Each codeagent-wrapper task:
   - Implements the feature
   - Writes tests
   - Runs coverage
@@ -84,7 +84,7 @@ Only one file—minimal and clear.
 
 ### Tools
 - **AskUserQuestion**: interactive requirement clarification
-- **codeagent skill**: analysis, development, testing; supports `--backend` for codex (default) or gemini (UI)
+- **codeagent-wrapper**: analysis, development, testing; supports `--backend` for codex (default) or gemini (UI)
 - **dev-plan-generator agent**: generate dev doc (subagent via Task tool, saves context)
 
 ## UI Auto-Detection & Backend Routing
@@ -130,7 +130,7 @@ A: Email + password
 Q: Should login be remembered?
 A: Yes, use JWT token
 
-# Step 2: codeagent analysis
+# Step 2: codeagent-wrapper analysis
 Output:
 - Core: email/password login + JWT auth
 - Task 1: Backend API

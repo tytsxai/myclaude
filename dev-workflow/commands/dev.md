@@ -48,7 +48,7 @@ These rules have HIGHEST PRIORITY and override all other instructions:
 ### Step 1: Requirement Clarification (MANDATORY)
 
 - MUST use AskUserQuestion tool as the FIRST action - no exceptions
-- Focus questions on functional boundaries, inputs/outputs, constraints, testing, and required unit-test coverage levels
+- Focus questions on functional boundaries, inputs/outputs, constraints, and testing scope (coverage is fixed at ≥90% and non-negotiable)
 - Iterate 2-3 rounds until clear; rely on judgment; keep questions concise
 - After clarification complete: MUST use TodoWrite to create task tracking list with workflow steps
 
@@ -116,10 +116,12 @@ evidence: [files and reasoning tied to style + component criteria]
 - Small changes confined to 1-2 files
 - Clear requirements with single implementation path
 
+**If skipping deep analysis**, still call `codeagent-wrapper` with a lightweight prompt that avoids broad exploration but produces the required output structure (context, task breakdown, UI determination).
+
 ### Step 3: Generate Development Documentation
 
 - Use Task tool with `subagent_type='dev-plan-generator'` to invoke the agent
-- When creating `dev-plan.md`, append a dedicated UI task if Step 2 marked `needs_ui: true`
+- Pass `needs_ui` context into the agent and ensure the UI task (if needed) is included within the 2–5 total tasks (do not append after generation if it would exceed the limit)
 - Output a brief summary of dev-plan.md:
   - Number of tasks and their IDs
   - File scope for each task
@@ -170,6 +172,7 @@ EOF
 - **Dependencies format**: comma-separated task IDs, or empty if none
 - **Note**: Use `workdir: .` (current directory) for all tasks unless specific subdirectory is required
 - **Output format**: Structured report with Did/Files/Tests for passed, Error/Detail for failed
+- **Session tracking**: Ensure the wrapper output includes a `session_id` for each task set; capture it for Step 5 resume commands
 
 ### Step 5: Coverage Validation
 
