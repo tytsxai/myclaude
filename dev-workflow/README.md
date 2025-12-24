@@ -125,33 +125,53 @@ Only one file—minimal and clear.
 - User confirmation for round 3+
 - Exit on: met / stopped / no improvement
 
-## Example
+## Examples
+
+### Example 1: Fast Path (Single-file fix)
 
 ```bash
-# Trigger
+/dev "fix null pointer at src/auth/login.ts line 42"
+
+# Fast Path: eligible (single file, <100 lines)
+→ Read src/auth/login.ts
+→ Edit line 42: add null check
+→ pytest tests/test_login.py → Pass
+→ Done (skipped Step 1-4)
+```
+
+### Example 2: Standard Flow (New feature)
+
+```bash
 /dev "Add user login feature"
 
-# Step 1: Clarify requirements
-Q: What login methods are supported?
-A: Email + password
-Q: Should login be remembered?
-A: Yes, use JWT token
+# Step 1: Clarify (required - new feature)
+Q: Login methods? A: Email + password
+Q: Remember login? A: Yes, JWT token
 
-# Step 2: codeagent-wrapper analysis
-Output:
-- Core: email/password login + JWT auth
-- Task 1: Backend API
-- Task 2: Password hashing
-- Task 3: Frontend form
-UI detection: needs_ui = true (component: .tsx form + style: Tailwind classes)
+# Step 2: Analysis (large-scope → wrapper)
+→ codeagent-wrapper analysis
+→ Tasks: Backend API, Password hashing, Frontend form
+→ UI detected: .tsx + Tailwind
 
-# Step 3: Generate doc
-dev-plan.md generated with backend + UI tasks ✓
+# Step 3-5: Generate → Execute → Verify
+→ dev-plan.md generated
+→ 3 parallel tasks (codex + gemini)
+→ Coverage: 92%, 95%, 75% ✓
+```
 
-# Step 4-5: Concurrent development (backend codex, UI gemini)
-[task-1] Backend API (codex) → tests → 92% ✓
-[task-2] Password hashing (codex) → tests → 95% ✓
-[task-3] Frontend form (gemini) → tests → 75% ✓ (UI threshold: 70%)
+### Example 3: Smart Delegation (Small-scope)
+
+```bash
+/dev "add input validation to src/auth/register.ts"
+
+# Step 1: Skip (clear implementation path)
+# Step 2: Small-scope (1 file) → Read directly
+→ Read src/auth/register.ts
+→ Identify validation points
+
+# Step 3-5: Standard flow
+→ dev-plan.md with 2 tasks
+→ Execute → 91% coverage ✓
 ```
 
 ## Directory Structure
@@ -180,8 +200,28 @@ Minimal structure, only three files.
 1. **Unlimited parallelization**: maximize Codex concurrency, no artificial limits
 2. **Quality first**: enforce 90% coverage (backend) / 70% (UI)
 3. **Aggressive execution**: push project progress at full speed
-4. **Disposable**: no persistent config
-5. **No legacy baggage**: clean-slate design
+4. **Smart delegation**: right tool for right scope
+5. **Fast path first**: simple tasks skip overhead
+
+---
+
+## Performance Benchmark
+
+| Scenario | Fast Path | Standard Flow | Savings |
+|----------|-----------|---------------|---------|
+| Single-line fix | ~30s | ~3-5min | **85%** |
+| Single-file refactor | ~1min | ~5-8min | **80%** |
+| Multi-file feature | N/A | ~10-15min | - |
+
+**Fast Path triggers**:
+- Single file, <100 lines changed
+- No cross-file dependencies
+- Clear implementation path
+
+**When to use Standard Flow**:
+- New features (unclear scope)
+- Architecture changes
+- Multi-module changes
 
 ---
 
