@@ -22,31 +22,13 @@ These rules have HIGHEST PRIORITY and override all other instructions:
 
 ---
 
-## Core Architecture: Closed-Loop Iterative Command System
+## Core Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│              Main Claude Code (Commander)                    │
-│  - Requirement clarification, task decomposition             │
-│  - Result verification, iteration decisions                  │
-└─────────────────────────┬───────────────────────────────────┘
-                          │
-                          ▼
-┌─────────────────────────────────────────────────────────────┐
-│              codeagent-wrapper (Dispatcher)                  │
-│  - Parallel execution, dependency topology                   │
-│  - Structured reporting, session management                  │
-└─────────────────────────┬───────────────────────────────────┘
-                          │
-          ┌───────────────┼───────────────┐
-          ▼               ▼               ▼
-     ┌─────────┐    ┌─────────┐    ┌─────────┐
-     │  Codex  │    │ Claude  │    │ Gemini  │
-     │(Executor)│    │(Executor)│    │(Executor)│
-     └─────────┘    └─────────┘    └─────────┘
-```
+**Commander (Claude Code)** → **Dispatcher (codeagent-wrapper)** → **Executors (Codex/Claude/Gemini)**
 
-**Key Principle**: Commander continuously commands executors until task completion. Executors are stateless workers; Commander maintains global state and makes iteration decisions.
+- Commander: requirement clarification, task decomposition, result verification, iteration decisions
+- Dispatcher: parallel execution, dependency topology, structured reporting
+- Executors: stateless workers, code changes only
 
 ---
 
@@ -253,26 +235,18 @@ EOF
 
 #### 5.3 Iteration Control
 
-**Limits**:
-- No fixed iteration limit - continue until task succeeds or user decides to stop
-- If task repeatedly fails with same error → report to user for decision
+**Hard Limits** (NEVER exceed):
+- **Max 3 iterations per task** - after 3 attempts, escalate to user
+- **Max 2 coverage retries** - if coverage <90% after 2 test additions, accept and note
+- **Same error = immediate escalation** - don't retry identical failures
 
-**Iteration Loop**:
-```
-FOR each task needing action:
-  previous_error = null
-  WHILE task not complete:
-    IF task failed:
-      IF same error as previous_error:
-        Add to "needs_user_decision" list
-        BREAK
-      --resume with fix instructions
-      previous_error = current_error
-    ELSE IF coverage < 90% AND user wants more tests:
-      --resume with test instructions
-
-    Re-evaluate task status
-```
+**Iteration Decision Table**:
+| Condition | Action | Max Retries |
+|-----------|--------|-------------|
+| Task failed, new error | `--resume` with fix | 3 |
+| Task failed, same error | Escalate to user | 0 |
+| Coverage <90% | `--resume` to add tests | 2 |
+| Dependency failed | Fix parent first | - |
 
 **User Decision Request** (when same error repeats):
 ```
