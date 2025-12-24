@@ -51,6 +51,7 @@ Done (generate summary)
   - UI/style/component tasks → `--backend gemini` (enforced)
 - Independent tasks → run in parallel
 - Conflicting tasks → run serially
+- **Single-task exception**: If the feature involves ≤1 file or trivial changes, skip parallel execution and run a single task directly (violates the 2-5 task rule to honor KISS principle)
 
 ### 5. Testing & Verification
 - Each codeagent-wrapper task:
@@ -114,7 +115,7 @@ Only one file—minimal and clear.
 - codeagent executes independently
 
 ### ✅ Quality Assurance
-- Enforces 90% coverage
+- Enforces 90% coverage (backend) / 70% coverage (UI tasks)
 - codeagent tests and verifies its own work
 - Automatic retry on failure
 
@@ -144,7 +145,7 @@ dev-plan.md generated with backend + UI tasks ✓
 # Step 4-5: Concurrent development (backend codex, UI gemini)
 [task-1] Backend API (codex) → tests → 92% ✓
 [task-2] Password hashing (codex) → tests → 95% ✓
-[task-3] Frontend form (gemini) → tests → 91% ✓
+[task-3] Frontend form (gemini) → tests → 75% ✓ (UI threshold: 70%)
 ```
 
 ## Directory Structure
@@ -170,9 +171,9 @@ Minimal structure, only three files.
 
 ## Design Principles
 
-1. **KISS**: keep it simple
+1. **KISS**: keep it simple (≤1 file changes skip parallel, run single task)
 2. **Disposable**: no persistent config
-3. **Quality first**: enforce 90% coverage
+3. **Quality first**: enforce 90% coverage (backend) / 70% (UI)
 4. **Concurrency first**: leverage codeagent
 5. **No legacy baggage**: clean-slate design
 

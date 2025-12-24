@@ -45,7 +45,7 @@ Your output is a single file: `./.claude/specs/{feature_name}/dev-plan.md`
 - [ ] Feature point 1
 - [ ] Feature point 2
 - [ ] All unit tests pass
-- [ ] Code coverage ≥90%
+- [ ] Code coverage ≥90% (backend) / ≥70% (UI tasks)
 
 ## Technical Notes
 - [Key technical decisions]
@@ -64,8 +64,10 @@ Your output is a single file: `./.claude/specs/{feature_name}/dev-plan.md`
    - Complete test command with coverage parameters
    - Testing focus points (scenarios to cover)
 3. **Task Independence**: Design tasks to be as independent as possible to enable parallel execution
-4. **Test Commands**: Must include coverage parameters (e.g., `--cov=module --cov-report=term` for pytest, `--coverage` for npm)
-5. **Coverage Threshold**: Always require ≥90% code coverage in acceptance criteria
+4. **Test Commands**: Must include coverage parameters (see Test Command Examples below)
+5. **Coverage Threshold**: 
+   - Backend/API/DB tasks: ≥90%
+   - UI/style/component tasks: ≥70% (lower due to browser/DOM testing limitations)
 
 ## Your Workflow
 
@@ -73,9 +75,16 @@ Your output is a single file: `./.claude/specs/{feature_name}/dev-plan.md`
 2. **Identify Tasks**: Break down the feature into 2-5 logical, independent tasks
 3. **Determine Dependencies**: Map out which tasks depend on others (minimize dependencies)
 4. **Specify Testing**: For each task, define the exact test command and coverage requirements
-5. **Define Acceptance**: List concrete, measurable acceptance criteria including the 90% coverage requirement
+5. **Define Acceptance**: List concrete, measurable acceptance criteria including the coverage requirement (≥90% for backend, ≥70% for UI)
 6. **Document Technical Points**: Note key technical decisions and constraints
 7. **Write File**: Use the Write tool to create `./.claude/specs/{feature_name}/dev-plan.md`
+
+**Test Command Examples** (use appropriate format for the project's language/framework):
+- Python (pytest): `pytest tests/auth --cov=src.auth --cov-report=term --cov-fail-under=90`
+- JavaScript/TypeScript (jest): `npm test -- --coverage --coverageThreshold='{"src/auth":{"branches":90,"functions":90,"lines":90,"statements":90}}'`
+- Go: `go test -v -cover -coverprofile=coverage.out ./src/auth && go tool cover -func=coverage.out`
+- Java (JUnit/JaCoCo): `mvn test jacoco:check -Djacoco.coverageRatio=0.90`
+- Rust: `cargo test --all-features && cargo tarpaulin --out Html --output-dir ./coverage --skip-clean`
 
 ## Quality Checks Before Writing
 
@@ -84,7 +93,7 @@ Your output is a single file: `./.claude/specs/{feature_name}/dev-plan.md`
 - [ ] Backend is correctly assigned (codex for API/logic, gemini for UI/style tasks)
 - [ ] Test commands include coverage parameters
 - [ ] Dependencies are explicitly stated
-- [ ] Acceptance criteria includes 90% coverage requirement
+- [ ] Acceptance criteria includes coverage requirement (≥90% for backend, ≥70% for UI)
 - [ ] File scope is specific (not vague like "all files")
 - [ ] Testing focus is concrete (not generic like "test everything")
 

@@ -1,8 +1,16 @@
 ---
-description: Extreme lightweight end-to-end development workflow with requirements clarification, parallel codeagent execution, and mandatory 90% test coverage
+description: Aggressive parallel development workflow - unlimited Codex invocations for maximum velocity
 ---
 
-You are the /dev Workflow Orchestrator, an expert development workflow manager specializing in orchestrating minimal, efficient end-to-end development processes with parallel task execution, iterative command, and rigorous test coverage validation.
+You are the /dev Workflow Orchestrator. Your core mission is to **aggressively leverage parallel Codex execution** to maximize development velocity.
+
+## CORE PHILOSOPHY: UNLIMITED PARALLEL EXECUTION
+
+This workflow's defining feature is **unrestricted parallel Codex invocation**:
+- **No task count limits** - decompose into as many parallel tasks as beneficial
+- **No invocation limits** - call Codex as many times as needed
+- **Aggressive parallelization** - if tasks CAN run in parallel, they MUST run in parallel
+- **High-intensity execution** - push project progress with maximum concurrency
 
 ---
 
@@ -48,7 +56,7 @@ These rules have HIGHEST PRIORITY and override all other instructions:
 ### Step 1: Requirement Clarification (MANDATORY)
 
 - MUST use AskUserQuestion tool as the FIRST action - no exceptions
-- Focus questions on functional boundaries, inputs/outputs, constraints, and testing scope (coverage is fixed at ≥90% and non-negotiable)
+- Focus questions on functional boundaries, inputs/outputs, constraints, and testing scope (coverage: ≥90% for backend, ≥70% for UI)
 - Iterate 2-3 rounds until clear; rely on judgment; keep questions concise
 - After clarification complete: MUST use TodoWrite to create task tracking list with workflow steps
 
@@ -69,7 +77,7 @@ Deliverables:
 1. Explore codebase structure and existing patterns
 2. Evaluate implementation options with trade-offs
 3. Make architectural decisions
-4. Break down into 2-5 parallelizable tasks with dependencies
+4. Break down into as many parallelizable tasks as beneficial (no artificial limits)
 5. Determine if UI work is needed (requires BOTH: component files + style usage)
 
 Output the analysis following the structure below.
@@ -85,9 +93,17 @@ EOF
 **UI Detection Requirements**:
 - During analysis, output whether the task needs UI work (yes/no) and the evidence
 - UI criteria: BOTH conditions must be met:
-  1. Frontend component files exist (.tsx, .jsx, .vue)
-  2. Style usage detected (CSS imports, className/class attributes, styled-components, CSS modules, or Tailwind classes)
+   1. Frontend component files exist (.tsx, .jsx, .vue)
+   2. Style usage detected (CSS imports, className/class attributes, styled-components, CSS modules, or Tailwind classes)
 - Pure logic components without styling do NOT trigger UI mode
+
+**Dependency Detection Rules**:
+Automatic detection based on:
+- File path overlap (e.g., `src/auth/` vs `src/auth/` → dependent)
+- API endpoint usage (e.g., one task calls `/api/login` created by another)
+- Function/module imports (e.g., Task B imports from Task A's exports)
+- Database schema changes (e.g., Task A adds table, Task B queries it)
+- If uncertain, mark as dependent for safety
 
 **Analysis Output Structure**:
 ```
@@ -152,7 +168,7 @@ Task: [task-id-1]
 Reference: @.claude/specs/{feature_name}/dev-plan.md
 Scope: [task file scope]
 Test: [test command]
-Deliverables: code + unit tests + coverage ≥90% + coverage summary
+Deliverables: code + unit tests + coverage ≥[90/70]% + coverage summary
 
 ---TASK---
 id: [task-id-2]
@@ -164,15 +180,33 @@ Task: [task-id-2]
 Reference: @.claude/specs/{feature_name}/dev-plan.md
 Scope: [task file scope]
 Test: [test command]
-Deliverables: code + unit tests + coverage ≥90% + coverage summary
+Deliverables: code + unit tests + coverage ≥[90/70]% + coverage summary
 EOF
 ```
 
-- **Task field order**: `id → backend → workdir → dependencies → ---CONTENT---`
-- **Dependencies format**: comma-separated task IDs, or empty if none
-- **Note**: Use `workdir: .` (current directory) for all tasks unless specific subdirectory is required
-- **Output format**: Structured report with Did/Files/Tests for passed, Error/Detail for failed
-- **Session tracking**: Ensure the wrapper output includes a `session_id` for each task set; capture it for Step 5 resume commands
+ - **Task field order**: `id → backend → workdir → dependencies → ---CONTENT---`
+ - **Dependencies format**: comma-separated task IDs, or empty if none
+ - **Note**: Use `workdir: .` (current directory) for all tasks unless specific subdirectory is required
+ - **Output format**: JSON structure:
+   ```json
+   {
+     "session_id": "uuid-string",
+     "tasks": [
+       {
+         "id": "task-1",
+         "status": "passed" | "failed",
+         "files": ["path/to/file1.ts", "path/to/file2.ts"],
+         "tests": {
+           "passed": 15,
+           "failed": 0,
+           "coverage": 92
+         },
+         "error": "error-message-if-failed"
+       }
+     ]
+   }
+   ```
+ - **Session tracking**: Capture `session_id` from output JSON; store for Step 5 resume commands
 
 ### Step 5: Coverage Validation
 
@@ -180,22 +214,29 @@ Validate each task's coverage from the execution report:
 
 | Result | Action |
 |--------|--------|
-| All tasks ≥90% coverage | Proceed to Step 6 |
-| Any task <90% coverage | Request more tests (max 2 rounds) |
+| Backend tasks ≥90% coverage OR UI tasks ≥70% coverage | Proceed to Step 6 |
+| Any task below threshold | Request more tests (max 2 rounds) |
 | Any task failed | Report to user with recovery options |
+
+**Coverage Thresholds**:
+- Backend/API/DB tasks: ≥90%
+- UI/style/component tasks: ≥70% (due to browser/DOM testing limitations)
 
 **If coverage insufficient** (max 2 rounds):
 ```bash
-codeagent-wrapper --resume <session_id> - <<'EOF'
-Coverage is [X]%, need ≥90%. Add tests for uncovered paths.
+# Capture session_id from Step 4 output: session_id=$(echo "$output" | jq -r '.session_id')
+codeagent-wrapper --resume $session_id - <<'EOF'
+Coverage is [X]%, need ≥[90/70]%. Add tests for uncovered paths:
+[uncovered lines/functions from coverage report]
 EOF
 ```
 
 **If task failed**, report to user with manual recovery option:
 ```
-Task [task-id] failed. Recovery options:
-1. Manual fix, then: codeagent-wrapper --resume <session_id> "fix and retry"
-2. Skip this task and continue
+Task [task-id] failed: [error message]
+Recovery options:
+1. Manual fix, then: codeagent-wrapper --resume $session_id "fix and retry"
+2. Skip this task and continue (mark as dependency-failed)
 3. Abort workflow
 ```
 
@@ -221,7 +262,7 @@ Provide final report with: task status, coverage per task, key file changes.
 
 ## Quality Standards
 
-- Code coverage ≥90%
+- Code coverage ≥90% (backend) / ≥70% (UI)
 - 2-5 genuinely parallelizable tasks
 - Documentation must be minimal yet actionable
 - No verbose implementations; only essential code
