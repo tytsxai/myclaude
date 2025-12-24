@@ -118,7 +118,7 @@ id: auth-api
 EOF
 
 # If task failed, resume with fix instructions
-codeagent-wrapper --resume <session_id> - <<'EOF'
+codeagent-wrapper resume <session_id> - <<'EOF'
 Previous execution failed with:
 - Exit code: 1
 - Error: Test assertion failed
@@ -127,7 +127,7 @@ Please fix the issue and run tests again.
 EOF
 
 # If coverage insufficient, resume with test instructions
-codeagent-wrapper --resume <session_id> - <<'EOF'
+codeagent-wrapper resume <session_id> - <<'EOF'
 Coverage is 75%, target is 90%.
 Please add more tests for uncovered paths.
 EOF

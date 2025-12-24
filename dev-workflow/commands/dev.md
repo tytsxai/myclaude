@@ -24,7 +24,7 @@ These rules have HIGHEST PRIORITY and override all other instructions:
 4. **MUST use codeagent-wrapper for Step 2 analysis** - Do NOT use Read/Glob/Grep directly for deep analysis
 5. **MUST wait for user confirmation in Step 3** - Do NOT proceed to Step 4 without explicit approval
 6. **MUST invoke codeagent-wrapper --parallel for Step 4 execution** - Use Bash tool, NOT Edit/Write or Task tool
-7. **MUST iterate until completion in Step 5** - Use --resume to continue commanding failed/incomplete tasks
+7. **MUST iterate until completion in Step 5** - Use `resume` subcommand to continue commanding failed/incomplete tasks
 
 **Violation of any constraint above invalidates the entire workflow. Stop and restart if violated.**
 
@@ -120,7 +120,7 @@ Automatic detection based on:
 [API design, data models, architecture choices made]
 
 ## Task Breakdown
-[2-5 tasks with: ID, description, file scope, dependencies, test command]
+[Tasks with: ID, description, file scope, dependencies, test command - no artificial count limits]
 
 ## UI Determination
 needs_ui: [true/false]
@@ -137,7 +137,7 @@ evidence: [files and reasoning tied to style + component criteria]
 ### Step 3: Generate Development Documentation
 
 - Use Task tool with `subagent_type='dev-plan-generator'` to invoke the agent
-- Pass `needs_ui` context into the agent and ensure the UI task (if needed) is included within the 2–5 total tasks (do not append after generation if it would exceed the limit)
+- Pass `needs_ui` context into the agent; task count is unlimited - decompose as finely as beneficial for parallelization
 - Output a brief summary of dev-plan.md:
   - Number of tasks and their IDs
   - File scope for each task
@@ -225,7 +225,7 @@ Validate each task's coverage from the execution report:
 **If coverage insufficient** (max 2 rounds):
 ```bash
 # Capture session_id from Step 4 output: session_id=$(echo "$output" | jq -r '.session_id')
-codeagent-wrapper --resume $session_id - <<'EOF'
+codeagent-wrapper resume $session_id - <<'EOF'
 Coverage is [X]%, need ≥[90/70]%. Add tests for uncovered paths:
 [uncovered lines/functions from coverage report]
 EOF
@@ -235,7 +235,7 @@ EOF
 ```
 Task [task-id] failed: [error message]
 Recovery options:
-1. Manual fix, then: codeagent-wrapper --resume $session_id "fix and retry"
+1. Manual fix, then: codeagent-wrapper resume $session_id "fix and retry"
 2. Skip this task and continue (mark as dependency-failed)
 3. Abort workflow
 ```
@@ -252,7 +252,7 @@ Provide final report with: task status, coverage per task, key file changes.
 |------------|----------|
 | **codeagent-wrapper failure** | Retry once; if still fails, ask user |
 | **Insufficient coverage** | Request more tests (max 2 rounds); then report to user |
-| **Task execution failure** | Use --resume to fix; stop if same error repeats |
+| **Task execution failure** | Use `resume` to fix; stop if same error repeats |
 | **Dependency failure** | Fix parent first, then retry child |
 | **Circular dependencies** | Revise task breakdown to remove cycles |
 | **Timeout** | Retry individually; if persists, ask user |
@@ -263,7 +263,7 @@ Provide final report with: task status, coverage per task, key file changes.
 ## Quality Standards
 
 - Code coverage ≥90% (backend) / ≥70% (UI)
-- 2-5 genuinely parallelizable tasks
+- **Maximize parallelization** - no artificial task count limits
 - Documentation must be minimal yet actionable
 - No verbose implementations; only essential code
 
