@@ -18,15 +18,15 @@ This workflow's defining feature is **unrestricted parallel Codex invocation**:
 
 These rules have HIGHEST PRIORITY and override all other instructions:
 
-1. **NEVER use Edit, Write, or MultiEdit tools directly** - ALL code changes MUST go through codeagent-wrapper
-2. **MUST use AskUserQuestion in Step 1** - Do NOT skip requirement clarification
+1. **SMART tool usage**: Use Read/Glob/Grep directly for small-scope analysis (≤3 files, ≤2 directory levels, <500 lines). Use codeagent-wrapper for large-scope analysis (global search, architecture decisions, dependency mapping).
+2. **CONDITIONAL clarification**: Use AskUserQuestion in Step 1 ONLY when requirements are unclear. Skip for single-file fixes, documentation updates, or tasks with clear implementation paths.
 3. **MUST use TodoWrite after Step 1** - Create task tracking list before any analysis
-4. **MUST use codeagent-wrapper for Step 2 analysis** - Do NOT use Read/Glob/Grep directly for deep analysis
-5. **MUST wait for user confirmation in Step 3** - Do NOT proceed to Step 4 without explicit approval
-6. **MUST invoke codeagent-wrapper --parallel for Step 4 execution** - Use Bash tool, NOT Edit/Write or Task tool
-7. **MUST iterate until completion in Step 5** - Use `resume` subcommand to continue commanding failed/incomplete tasks
+4. **MUST wait for user confirmation in Step 3** - Do NOT proceed to Step 4 without explicit approval
+5. **MUST invoke codeagent-wrapper --parallel for Step 4 execution** - Use Bash tool, NOT Edit/Write or Task tool
+6. **ITERATIVE coverage improvement**: Auto-retry up to 2 rounds, then require user confirmation. Stop when: (a) coverage met, (b) user stops, or (c) no improvement for 3 consecutive rounds
+7. **Fast Path for Simple Tasks**: Single-file edits (<100 lines) may skip Step 1-4 and execute directly using Edit/Write tools. Must still run tests and verify coverage. On failure, fallback to standard 6-step workflow.
 
-**Violation of any constraint above invalidates the entire workflow. Stop and restart if violated.**
+**Violation of constraints 3-5 invalidates the entire workflow. Stop and restart if violated.**
 
 ---
 
@@ -53,16 +53,56 @@ These rules have HIGHEST PRIORITY and override all other instructions:
 
 ## Workflow Execution
 
-### Step 1: Requirement Clarification (MANDATORY)
+### Step 1: Requirement Clarification (CONDITIONAL)
 
-- MUST use AskUserQuestion tool as the FIRST action - no exceptions
-- Focus questions on functional boundaries, inputs/outputs, constraints, and testing scope (coverage: ≥90% for backend, ≥70% for UI)
-- Iterate 2-3 rounds until clear; rely on judgment; keep questions concise
-- After clarification complete: MUST use TodoWrite to create task tracking list with workflow steps
+**Skip clarification when** (requirements already clear):
+- Single-file/single-line fix (e.g., "fix null pointer at login.ts line 42")
+- Documentation updates with clear scope
+- Tasks with explicit implementation path (e.g., "add JWT middleware in src/auth/")
+- Bug fix with clear error message
 
-### Step 2: codeagent-wrapper Deep Analysis
+**Must clarify when**:
+- New feature development (unclear boundaries/inputs/outputs)
+- Architecture changes (unclear technical approach)
+- Vague requirements (e.g., "optimize performance", "improve UX")
+- Complex changes across multiple modules
 
-MUST use Bash tool to invoke `codeagent-wrapper` for deep analysis. Do NOT use Read/Glob/Grep tools directly - delegate all exploration to codeagent-wrapper.
+**Decision flow**:
+```
+Input → Single-file/single-line fix?
+    ├─ Yes → Skip → Step 2
+    └─ No → Has explicit implementation path?
+        ├─ Yes → Skip → Step 2
+        └─ No → Use AskUserQuestion
+```
+
+**When clarifying**:
+- Focus on functional boundaries, inputs/outputs, constraints, testing scope
+- Iterate 2-3 rounds until clear; keep questions concise
+- After clarification: MUST use TodoWrite to create task tracking list
+
+### Step 2: Technical Analysis (SMART DELEGATION)
+
+**Use Read/Glob/Grep directly when** (small-scope):
+- File count ≤ 3
+- Directory depth ≤ 2 (e.g., `src/auth/utils.ts`)
+- Total lines < 500
+- Changes within single module
+
+**Use codeagent-wrapper when** (large-scope):
+- Global code search (across 3+ directories)
+- Architecture analysis / pattern recognition
+- Dependency relationship mapping
+- Multiple technical approach comparison
+
+**Decision examples**:
+```
+❌ "Analyze all auth code in src/auth" → Use wrapper
+✅ "Check src/auth/login.ts implementation" → Use Read directly
+
+❌ "Find all sendEmail callers" → Use wrapper
+✅ "Check sendEmail.ts and related utils (≤3 files)" → Use Read/Grep
+```
 
 **How to invoke for analysis**:
 ```bash
@@ -208,27 +248,39 @@ EOF
    ```
  - **Session tracking**: Capture `session_id` from output JSON; store for Step 5 resume commands
 
-### Step 5: Coverage Validation
+### Step 5: Coverage Validation (ITERATIVE)
 
-Validate each task's coverage from the execution report:
+**Iteration strategy**:
 
-| Result | Action |
-|--------|--------|
-| Backend tasks ≥90% coverage OR UI tasks ≥70% coverage | Proceed to Step 6 |
-| Any task below threshold | Request more tests (max 2 rounds) |
-| Any task failed | Report to user with recovery options |
+| Round | Behavior | Condition |
+|-------|----------|-----------|
+| 1-2 | Auto-retry | Unlimited |
+| 3+ | Require user confirmation | Ask "Continue? (yes/no/adjust)" |
+
+**Auto-exit conditions**:
+- ✅ Coverage met
+- ✅ User explicitly stops
+- ⚠️ No improvement for 3 consecutive rounds (<1% increase) → Suggest manual intervention
 
 **Coverage Thresholds**:
 - Backend/API/DB tasks: ≥90%
-- UI/style/component tasks: ≥70% (due to browser/DOM testing limitations)
+- UI/style/component tasks: ≥70%
 
-**If coverage insufficient** (max 2 rounds):
+**If coverage insufficient**:
 ```bash
-# Capture session_id from Step 4 output: session_id=$(echo "$output" | jq -r '.session_id')
 codeagent-wrapper resume $session_id - <<'EOF'
 Coverage is [X]%, need ≥[90/70]%. Add tests for uncovered paths:
 [uncovered lines/functions from coverage report]
 EOF
+```
+
+**Round 3+ user prompt**:
+```
+Coverage after 2 rounds: [X]%. Continue improving?
+Options:
+  1. Yes, continue (auto-retry)
+  2. Adjust threshold (accept current coverage)
+  3. Stop and report
 ```
 
 **If task failed**, report to user with manual recovery option:
@@ -248,15 +300,14 @@ Provide final report with: task status, coverage per task, key file changes.
 
 ## Error Handling
 
-| Error Type | Handling |
-|------------|----------|
-| **codeagent-wrapper failure** | Retry once; if still fails, ask user |
-| **Insufficient coverage** | Request more tests (max 2 rounds); then report to user |
-| **Task execution failure** | Use `resume` to fix; stop if same error repeats |
-| **Dependency failure** | Fix parent first, then retry child |
-| **Circular dependencies** | Revise task breakdown to remove cycles |
-| **Timeout** | Retry individually; if persists, ask user |
-| **Backend unavailable** | Fail immediately with clear error message |
+| Error Type | Retry Strategy | Max Rounds | Exit Condition |
+|------------|----------------|------------|----------------|
+| **Insufficient coverage** | Auto-retry 2 rounds → user confirm | Unlimited | Met/user stops/no improvement |
+| **Task execution failure** | Report to user immediately | 1 | Manual intervention |
+| **API rate limit** | Auto-delay retry | 5 | Success/failure |
+| **codeagent-wrapper failure** | Retry once | 2 | Ask user |
+| **Dependency failure** | Fix parent first | - | Parent fixed |
+| **Timeout** | Retry individually | 2 | Ask user |
 
 ---
 
@@ -266,6 +317,47 @@ Provide final report with: task status, coverage per task, key file changes.
 - **Maximize parallelization** - no artificial task count limits
 - Documentation must be minimal yet actionable
 - No verbose implementations; only essential code
+
+---
+
+## Fast Path: Single-Task Execution
+
+**Trigger conditions** (ALL must be met):
+- Modified files = 1
+- Changed lines < 100
+- No new files created
+- No cross-file dependencies
+- Task type: simple bug fix / doc update / config change
+
+**Fast path flow** (skip Step 1-4):
+```
+Input → Fast path eligible?
+    ├─ No → Standard 6-step workflow
+    └─ Yes → Direct execution → Test → Done
+```
+
+**Fast path constraints**:
+1. Use Edit/Write tools directly (avoid codeagent-wrapper overhead)
+2. MUST run tests (e.g., `pytest tests/test_login.py`)
+3. MUST verify coverage
+4. On failure → fallback to standard 6-step workflow
+
+**Example comparison**:
+```
+❌ Standard 6-step for single null pointer fix:
+   /dev "fix null pointer at login.ts line 42"
+   → Step 1: Ask questions (wasted)
+   → Step 2: codeagent analysis (wasted)
+   → Step 3: Generate dev-plan (wasted)
+   → Step 4: Parallel execution (meaningless for 1 task)
+
+✅ Fast path for single null pointer fix:
+   /dev "fix null pointer at login.ts line 42"
+   → Fast path: eligible
+   → Read login.ts → Edit line 42
+   → pytest tests/test_login.py → Pass
+   → Done
+```
 
 ---
 

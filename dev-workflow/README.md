@@ -18,34 +18,33 @@ A lightweight development workflow designed to maximize velocity through massive
 ```
 /dev trigger
   ↓
-AskUserQuestion (requirements clarification)
+Fast Path check (single-file? <100 lines?)
+  ├─ Yes → Direct Edit → Test → Done
+  └─ No ↓
+Step 1: Clarify (CONDITIONAL - skip if clear)
   ↓
-codeagent-wrapper analysis (plan mode + UI auto-detection)
+Step 2: Analysis (SMART - direct tools or wrapper)
   ↓
-dev-plan-generator (create dev doc)
+Step 3: Generate dev-plan.md
   ↓
-codeagent-wrapper concurrent development (unlimited parallel tasks)
+Step 4: Parallel execution (unlimited tasks)
   ↓
-codeagent-wrapper testing & verification (≥90% coverage)
+Step 5: Coverage validation (iterative)
   ↓
-Done (generate summary)
+Step 6: Done
 ```
 
 ## The 6 Steps
 
-### 1. Clarify Requirements
-- Use **AskUserQuestion** to ask the user directly
-- No scoring system, no complex logic
-- 2–3 rounds of Q&A until the requirement is clear
+### 1. Clarify Requirements (CONDITIONAL)
+- **Skip when**: single-file fix, doc update, clear implementation path
+- **Ask when**: new feature, architecture change, vague requirements
+- 2–3 rounds of Q&A if needed
 
-### 2. codeagent-wrapper Analysis & UI Detection
-- Call codeagent-wrapper to analyze the request in plan mode style
-- Extract: core functions, technical points, task list (no count limits)
-- UI auto-detection: needs UI work when BOTH conditions are met:
-  1. Frontend component files exist (.tsx, .jsx, .vue)
-  2. Style usage detected (CSS imports, className/class attributes, styled-components, CSS modules, or Tailwind classes)
-- Pure logic components without styling do NOT trigger UI mode
-- Output: yes/no plus evidence
+### 2. Technical Analysis (SMART DELEGATION)
+- **Small-scope** (≤3 files, <500 lines): Use Read/Glob/Grep directly
+- **Large-scope** (global search, architecture): Use codeagent-wrapper
+- UI auto-detection: component files + style usage → gemini backend
 
 ### 3. Generate Dev Doc
 - Call the **dev-plan-generator** agent
@@ -62,12 +61,10 @@ Done (generate summary)
 - Conflicting tasks → run serially
 - **Aggressive parallelization**: Always prefer more parallel tasks over fewer sequential ones
 
-### 5. Testing & Verification
-- Each codeagent-wrapper task:
-  - Implements the feature
-  - Writes tests
-  - Runs coverage
-  - Reports results (≥90%)
+### 5. Testing & Verification (ITERATIVE)
+- Auto-retry 2 rounds → then ask user
+- Exit when: coverage met / user stops / no improvement
+- Coverage: ≥90% (backend) / ≥70% (UI)
 
 ### 6. Complete
 - Summarize task status
@@ -108,26 +105,25 @@ Only one file—minimal and clear.
 
 ## Key Features
 
-### ✅ Fresh Design
-- No legacy project residue
-- No complex scoring logic
-- No extra abstraction layers
+### ✅ Fast Path
+- Single-file edits (<100 lines) skip Step 1-4
+- Direct Edit → Test → Done
+- Fallback to full workflow on failure
 
-### ✅ Minimal Orchestration
-- Orchestrator controls the flow directly
-- Only three tools/components
-- Steps are straightforward
+### ✅ Smart Delegation
+- Small-scope (≤3 files): Use tools directly
+- Large-scope: Use codeagent-wrapper
+- Conditional clarification (skip when clear)
 
 ### ✅ Unlimited Concurrency
 - No artificial task count limits
 - Aggressive parallel Codex invocation
 - Auto-detect dependencies and conflicts
-- codeagent executes independently
 
-### ✅ Quality Assurance
-- Enforces 90% coverage (backend) / 70% coverage (UI tasks)
-- codeagent tests and verifies its own work
-- Automatic retry on failure
+### ✅ Iterative Coverage
+- Auto-retry 2 rounds
+- User confirmation for round 3+
+- Exit on: met / stopped / no improvement
 
 ## Example
 
