@@ -25,7 +25,12 @@ jobs:
       - name: Check coverage
         run: |
           cd codeagent-wrapper
-          go tool cover -func=coverage.out | grep total | awk '{print $3}'
+          COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
+          echo "Coverage: ${COVERAGE}%"
+          if (( $(echo "$COVERAGE < 85" | bc -l) )); then
+            echo "::error::Coverage ${COVERAGE}% is below 85% threshold"
+            exit 1
+          fi
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4
