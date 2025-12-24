@@ -39,7 +39,7 @@ Your output is a single file: `./.claude/specs/{feature_name}/dev-plan.md`
 ### Task 2: [Task Name]
 ...
 
-(2-5 tasks)
+(unlimited tasks - decompose as finely as beneficial)
 
 ## Acceptance Criteria
 - [ ] Feature point 1
@@ -54,7 +54,7 @@ Your output is a single file: `./.claude/specs/{feature_name}/dev-plan.md`
 
 ## Generation Rules You Must Enforce
 
-1. **Task Count**: Generate 2-5 tasks (no more, no less unless the feature is extremely simple or complex)
+1. **Task Count**: Generate as many tasks as beneficial for parallelization (no artificial limits)
 2. **Task Requirements**: Each task MUST include:
    - Clear ID (task-1, task-2, etc.)
    - Backend selection (codex for API/logic, gemini for UI/style)
@@ -72,7 +72,7 @@ Your output is a single file: `./.claude/specs/{feature_name}/dev-plan.md`
 ## Your Workflow
 
 1. **Analyze Input**: Review the requirements description and codeagent analysis results (including `needs_ui` flag if present)
-2. **Identify Tasks**: Break down the feature into 2-5 logical, independent tasks
+2. **Identify Tasks**: Break down the feature into as many independent tasks as beneficial for parallel execution
 3. **Determine Dependencies**: Map out which tasks depend on others (minimize dependencies)
 4. **Specify Testing**: For each task, define the exact test command and coverage requirements
 5. **Define Acceptance**: List concrete, measurable acceptance criteria including the coverage requirement (≥90% for backend, ≥70% for UI)
@@ -88,7 +88,7 @@ Your output is a single file: `./.claude/specs/{feature_name}/dev-plan.md`
 
 ## Quality Checks Before Writing
 
-- [ ] Task count is between 2-5
+- [ ] Tasks are decomposed for maximum parallelization
 - [ ] Every task has all 7 required fields (ID, Backend, Description, File Scope, Dependencies, Test Command, Test Focus)
 - [ ] Backend is correctly assigned (codex for API/logic, gemini for UI/style tasks)
 - [ ] Test commands include coverage parameters

@@ -1,8 +1,17 @@
-# /dev - Minimal Dev Workflow
+# /dev - Aggressive Parallel Development Workflow
+
+## Core Feature: Unlimited Parallel Codex Execution
+
+This workflow's **defining characteristic** is aggressive, unrestricted parallel Codex invocation:
+
+- **No task count limits** - decompose into as many tasks as beneficial
+- **No invocation limits** - call Codex as many times as needed
+- **Maximum concurrency** - if tasks CAN run in parallel, they MUST
+- **High-intensity execution** - push project progress at full speed
 
 ## Overview
 
-A freshly designed lightweight development workflow with no legacy baggage, focused on delivering high-quality code fast.
+A lightweight development workflow designed to maximize velocity through massive parallel execution.
 
 ## Flow
 
@@ -15,7 +24,7 @@ codeagent-wrapper analysis (plan mode + UI auto-detection)
   ↓
 dev-plan-generator (create dev doc)
   ↓
-codeagent-wrapper concurrent development (2–5 tasks, backend split)
+codeagent-wrapper concurrent development (unlimited parallel tasks)
   ↓
 codeagent-wrapper testing & verification (≥90% coverage)
   ↓
@@ -31,7 +40,7 @@ Done (generate summary)
 
 ### 2. codeagent-wrapper Analysis & UI Detection
 - Call codeagent-wrapper to analyze the request in plan mode style
-- Extract: core functions, technical points, task list (2–5 items)
+- Extract: core functions, technical points, task list (no count limits)
 - UI auto-detection: needs UI work when BOTH conditions are met:
   1. Frontend component files exist (.tsx, .jsx, .vue)
   2. Style usage detected (CSS imports, className/class attributes, styled-components, CSS modules, or Tailwind classes)
@@ -41,7 +50,7 @@ Done (generate summary)
 ### 3. Generate Dev Doc
 - Call the **dev-plan-generator** agent
 - Produce a single `dev-plan.md`
-- Ensure the UI task (if needed) is included within the 2–5 total tasks
+- Task count is unlimited - decompose as finely as beneficial for parallelization
 - Include: task breakdown, file scope, dependencies, test commands
 
 ### 4. Concurrent Development
@@ -49,9 +58,9 @@ Done (generate summary)
 - Use codeagent-wrapper per task with explicit backend selection:
   - Backend/API/DB tasks → `--backend codex` (default)
   - UI/style/component tasks → `--backend gemini` (enforced)
-- Independent tasks → run in parallel
+- Independent tasks → run in parallel (maximize concurrency)
 - Conflicting tasks → run serially
-- **Single-task exception**: If the feature involves ≤1 file or trivial changes, skip parallel execution and run a single task directly (violates the 2-5 task rule to honor KISS principle)
+- **Aggressive parallelization**: Always prefer more parallel tasks over fewer sequential ones
 
 ### 5. Testing & Verification
 - Each codeagent-wrapper task:
@@ -109,8 +118,9 @@ Only one file—minimal and clear.
 - Only three tools/components
 - Steps are straightforward
 
-### ✅ Concurrency
-- 2–5 tasks in parallel
+### ✅ Unlimited Concurrency
+- No artificial task count limits
+- Aggressive parallel Codex invocation
 - Auto-detect dependencies and conflicts
 - codeagent executes independently
 
@@ -171,12 +181,12 @@ Minimal structure, only three files.
 
 ## Design Principles
 
-1. **KISS**: keep it simple (≤1 file changes skip parallel, run single task)
-2. **Disposable**: no persistent config
-3. **Quality first**: enforce 90% coverage (backend) / 70% (UI)
-4. **Concurrency first**: leverage codeagent
+1. **Unlimited parallelization**: maximize Codex concurrency, no artificial limits
+2. **Quality first**: enforce 90% coverage (backend) / 70% (UI)
+3. **Aggressive execution**: push project progress at full speed
+4. **Disposable**: no persistent config
 5. **No legacy baggage**: clean-slate design
 
 ---
 
-**Philosophy**: zero tolerance for complexity—ship the smallest usable solution, like Linus would.
+**Philosophy**: Unleash the full power of parallel Codex execution—ship fast, ship quality.
