@@ -23,6 +23,19 @@ except ImportError:  # pragma: no cover
     jsonschema = None
 
 DEFAULT_INSTALL_DIR = "~/.claude"
+BACKUP_ROOT_DIRNAME = ".install-backups"
+
+
+def env_flag_enabled(name: str, default: bool = False) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    value = value.strip().lower()
+    if value in {"1", "true", "yes", "on"}:
+        return True
+    if value in {"0", "false", "no", "off", ""}:
+        return False
+    return default
 
 
 def _ensure_list(ctx: Dict[str, Any], key: str) -> List[Any]:
@@ -160,6 +173,10 @@ def resolve_paths(config: Dict[str, Any], args: argparse.Namespace) -> Dict[str,
         "force": bool(getattr(args, "force", False)),
         "verbose": bool(getattr(args, "verbose", False)),
         "applied_paths": [],
+        "backup_paths": {},
+        "backup_dir": None,
+        "allow_external_sources": env_flag_enabled("INSTALL_ALLOW_EXTERNAL_SOURCES", False),
+        "allow_external_targets": env_flag_enabled("INSTALL_ALLOW_EXTERNAL_TARGETS", False),
         "status_backup": None,
     }
 
@@ -245,11 +262,68 @@ def execute_module(name: str, cfg: Dict[str, Any], ctx: Dict[str, Any]) -> Dict[
 
 
 def _source_path(op: Dict[str, Any], ctx: Dict[str, Any]) -> Path:
-    return (ctx["config_dir"] / op["source"]).expanduser().resolve()
+    raw = Path(op["source"]).expanduser()
+    path = (ctx["config_dir"] / raw).resolve()
+    return _ensure_within_base(
+        path,
+        ctx["config_dir"],
+        "Source",
+        allow_external=ctx.get("allow_external_sources", False),
+    )
 
 
 def _target_path(op: Dict[str, Any], ctx: Dict[str, Any]) -> Path:
-    return (ctx["install_dir"] / op["target"]).expanduser().resolve()
+    raw = Path(op["target"]).expanduser()
+    path = (ctx["install_dir"] / raw).resolve()
+    return _ensure_within_base(
+        path,
+        ctx["install_dir"],
+        "Target",
+        allow_external=ctx.get("allow_external_targets", False),
+    )
+
+
+def _ensure_within_base(
+    path: Path, base: Path, label: str, *, allow_external: bool
+) -> Path:
+    resolved = Path(path).resolve()
+    base = Path(base).resolve()
+    if allow_external or resolved == base or base in resolved.parents:
+        return resolved
+    raise ValueError(f"{label} path escapes base directory: {resolved}")
+
+
+def _ensure_backup_dir(ctx: Dict[str, Any]) -> Path:
+    backup_dir = ctx.get("backup_dir")
+    if backup_dir is not None:
+        return Path(backup_dir)
+    timestamp = datetime.now().strftime("%Y%m%dT%H%M%S")
+    backup_dir = Path(ctx["install_dir"]) / BACKUP_ROOT_DIRNAME / timestamp
+    backup_dir.mkdir(parents=True, exist_ok=True)
+    ctx["backup_dir"] = backup_dir
+    return backup_dir
+
+
+def _backup_existing(target: Path, ctx: Dict[str, Any]) -> None:
+    resolved = Path(target).resolve()
+    backups = ctx.setdefault("backup_paths", {})
+    if resolved in backups:
+        return
+
+    backup_dir = _ensure_backup_dir(ctx)
+    try:
+        rel = resolved.relative_to(Path(ctx["install_dir"]).resolve())
+        backup_path = backup_dir / rel
+    except ValueError:
+        safe_name = str(resolved).lstrip(os.sep).replace(os.sep, "__")
+        backup_path = backup_dir / "_external" / safe_name
+
+    backup_path.parent.mkdir(parents=True, exist_ok=True)
+    if resolved.is_dir():
+        shutil.copytree(resolved, backup_path)
+    else:
+        shutil.copy2(resolved, backup_path)
+    backups[resolved] = backup_path
 
 
 def _record_created(path: Path, ctx: Dict[str, Any]) -> None:
@@ -257,6 +331,11 @@ def _record_created(path: Path, ctx: Dict[str, Any]) -> None:
     resolved = Path(path).resolve()
     if resolved == install_dir or install_dir not in resolved.parents:
         return
+    backup_dir = ctx.get("backup_dir")
+    if backup_dir:
+        backup_dir = Path(backup_dir).resolve()
+        if resolved == backup_dir or backup_dir in resolved.parents:
+            return
     applied = _ensure_list(ctx, "applied_paths")
     if resolved not in applied:
         applied.append(resolved)
@@ -270,6 +349,8 @@ def op_copy_dir(op: Dict[str, Any], ctx: Dict[str, Any]) -> None:
     if existed_before and not ctx.get("force", False):
         write_log({"level": "INFO", "message": f"Skip existing dir: {dst}"}, ctx)
         return
+    if existed_before and ctx.get("force", False):
+        _backup_existing(dst, ctx)
 
     dst.parent.mkdir(parents=True, exist_ok=True)
     shutil.copytree(src, dst, dirs_exist_ok=True)
@@ -293,9 +374,14 @@ def op_merge_dir(op: Dict[str, Any], ctx: Dict[str, Any]) -> None:
         for f in subdir.iterdir():
             if f.is_file():
                 dst = target_subdir / f.name
-                if dst.exists() and not force:
+                existed_before = dst.exists()
+                if existed_before and not force:
                     continue
+                if existed_before and force:
+                    _backup_existing(dst, ctx)
                 shutil.copy2(f, dst)
+                if not existed_before:
+                    _record_created(dst, ctx)
                 merged.append(f"{subdir.name}/{f.name}")
 
     write_log({"level": "INFO", "message": f"Merged {src.name}: {', '.join(merged) or 'no files'}"}, ctx)
@@ -309,6 +395,8 @@ def op_copy_file(op: Dict[str, Any], ctx: Dict[str, Any]) -> None:
     if existed_before and not ctx.get("force", False):
         write_log({"level": "INFO", "message": f"Skip existing file: {dst}"}, ctx)
         return
+    if existed_before and ctx.get("force", False):
+        _backup_existing(dst, ctx)
 
     dst.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(src, dst)
@@ -330,7 +418,10 @@ def op_merge_json(op: Dict[str, Any], ctx: Dict[str, Any]) -> None:
 
     dst.parent.mkdir(parents=True, exist_ok=True)
     if dst.exists():
+        if dst.is_dir():
+            raise IsADirectoryError(f"Target JSON path is a directory: {dst}")
         dst_data = _load_json(dst)
+        _backup_existing(dst, ctx)
     else:
         dst_data = {}
         _record_created(dst, ctx)
@@ -355,9 +446,15 @@ def op_merge_json(op: Dict[str, Any], ctx: Dict[str, Any]) -> None:
         else:
             dst_data = src_data
 
-    with dst.open("w", encoding="utf-8") as fh:
-        json.dump(dst_data, fh, indent=2, ensure_ascii=False)
-        fh.write("\n")
+    tmp_path = dst.with_suffix(dst.suffix + ".tmp")
+    try:
+        with tmp_path.open("w", encoding="utf-8") as fh:
+            json.dump(dst_data, fh, indent=2, ensure_ascii=False)
+            fh.write("\n")
+        os.replace(tmp_path, dst)
+    finally:
+        if tmp_path.exists():
+            tmp_path.unlink(missing_ok=True)
 
     write_log({"level": "INFO", "message": f"Merged JSON {src} -> {dst} (key: {merge_key or 'root'})"}, ctx)
 
@@ -512,11 +609,40 @@ def rollback(ctx: Dict[str, Any]) -> None:
                 ctx,
             )
 
+    restore_backups(ctx)
+
     backup = ctx.get("status_backup")
     if backup and Path(backup).exists():
         shutil.copy2(backup, ctx["status_file"])
 
     write_log({"level": "INFO", "message": "Rollback completed"}, ctx)
+
+
+def restore_backups(ctx: Dict[str, Any]) -> None:
+    backups = ctx.get("backup_paths") or {}
+    if not backups:
+        return
+    for target, backup in backups.items():
+        target_path = Path(target)
+        backup_path = Path(backup)
+        if not backup_path.exists():
+            continue
+        try:
+            if backup_path.is_dir():
+                if target_path.exists():
+                    shutil.rmtree(target_path, ignore_errors=True)
+                shutil.copytree(backup_path, target_path)
+            else:
+                target_path.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(backup_path, target_path)
+        except Exception as exc:  # noqa: BLE001
+            write_log(
+                {
+                    "level": "ERROR",
+                    "message": f"Failed to restore backup {backup_path} -> {target_path}: {exc}",
+                },
+                ctx,
+            )
 
 
 def main(argv: Optional[Iterable[str]] = None) -> int:

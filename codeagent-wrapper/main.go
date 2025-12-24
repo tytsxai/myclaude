@@ -135,6 +135,7 @@ func run() (exitCode int) {
 		return 1
 	}
 	setLogger(logger)
+	keepLogs := envFlagEnabled("CODEAGENT_KEEP_LOGS")
 
 	defer func() {
 		logger := activeLogger()
@@ -152,11 +153,17 @@ func run() (exitCode int) {
 					for _, entry := range errors {
 						fmt.Fprintln(os.Stderr, entry)
 					}
-					fmt.Fprintf(os.Stderr, "Log file: %s (deleted)\n", logger.Path())
+					action := "deleted"
+					if keepLogs {
+						action = "kept"
+					}
+					fmt.Fprintf(os.Stderr, "Log file: %s (%s)\n", logger.Path(), action)
 				}
 			}
-			if err := logger.RemoveLogFile(); err != nil && !os.IsNotExist(err) {
-				// Silently ignore removal errors
+			if !keepLogs {
+				if err := logger.RemoveLogFile(); err != nil && !os.IsNotExist(err) {
+					// Silently ignore removal errors
+				}
 			}
 		}
 	}()

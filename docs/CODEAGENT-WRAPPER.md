@@ -15,13 +15,19 @@ Multi-backend AI code execution wrapper supporting Codex, Claude, and Gemini.
 
 ```bash
 # Clone repository
-git clone https://github.com/cexll/myclaude.git
+git clone https://github.com/tytsxai/myclaude.git
 cd myclaude
 
-# Install via install.py (includes binary compilation)
+# Install via install.py (downloads release binary; requires network)
 python3 install.py --module dev
 
-# Or manual installation
+# Pin a specific wrapper version (recommended for production)
+CODEAGENT_WRAPPER_VERSION=v5.4.0 python3 install.py --module dev
+
+# Optional checksum verification
+CODEAGENT_WRAPPER_SHA256="<sha256>" python3 install.py --module dev
+
+# Or build from source (offline / custom)
 cd codeagent-wrapper
 go build -o ~/.claude/bin/codeagent-wrapper
 ```
@@ -351,6 +357,7 @@ Error: dependency backend_1701234567 failed
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `CODEX_TIMEOUT` | 7200000 | Timeout in milliseconds |
+| `CODEAGENT_KEEP_LOGS` | false | Keep log files after execution (set to `1` or `true` to enable) |
 
 ## Troubleshooting
 
