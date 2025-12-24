@@ -171,129 +171,34 @@ EOF
 - **Note**: Use `workdir: .` (current directory) for all tasks unless specific subdirectory is required
 - **Output format**: Structured report with Did/Files/Tests for passed, Error/Detail for failed
 
-### Step 5: Result Analysis & Iterative Command (CLOSED-LOOP)
+### Step 5: Coverage Validation
 
-This is the core of the iterative command system. After receiving the execution report:
+Validate each task's coverage from the execution report:
 
-#### 5.1 Classify Task Status
+| Result | Action |
+|--------|--------|
+| All tasks ≥90% coverage | Proceed to Step 6 |
+| Any task <90% coverage | Request more tests (max 2 rounds) |
+| Any task failed | Report to user with recovery options |
 
-Parse the structured report and classify each task:
-
-| Status | Indicator | Action |
-|--------|-----------|--------|
-| **Success** | `✓` + coverage ≥90% | Complete, no action needed |
-| **Warning** | `⚠️` + coverage <90% | Optional: add more tests |
-| **Failed** | `✗` + Exit code ≠ 0 | Need fix |
-| **Skipped** | dependency failed | Fix parent first |
-
-#### 5.2 Iterative Command with --resume
-
-For tasks that need continuation, use `--resume` with the session ID:
-
-**For failed tasks (fix errors)**:
+**If coverage insufficient** (max 2 rounds):
 ```bash
 codeagent-wrapper --resume <session_id> - <<'EOF'
-Previous execution failed with:
-- Exit code: [code]
-- Error: [error message]
-- Detail: [error detail from report]
-
-Please fix the issue and complete the task:
-- [specific fix requirements based on error]
-- Run tests to verify fix
-- Ensure coverage ≥90%
+Coverage is [X]%, need ≥90%. Add tests for uncovered paths.
 EOF
 ```
 
-**For coverage-insufficient tasks (add tests)**:
-```bash
-codeagent-wrapper --resume <session_id> - <<'EOF'
-Previous execution succeeded but coverage is insufficient:
-- Current coverage: [X]%
-- Target: ≥90%
-- Gap: [uncovered areas if available]
-
-Please add more tests to improve coverage:
-- Focus on uncovered code paths
-- Add edge case tests
-- Run coverage report to verify ≥90%
-EOF
+**If task failed**, report to user with manual recovery option:
 ```
-
-**For skipped tasks (after parent fixed)**:
-```bash
-codeagent-wrapper --backend <backend> - <<'EOF'
-Task: [task-id]
-Reference: @.claude/specs/{feature_name}/dev-plan.md
-Scope: [task file scope]
-Test: [test command]
-Deliverables: code + unit tests + coverage ≥90%
-
-Note: Parent task [parent-id] has been fixed. Proceed with implementation.
-EOF
-```
-
-#### 5.3 Iteration Control
-
-**Hard Limits** (NEVER exceed):
-- **Max 3 iterations per task** - after 3 attempts, escalate to user
-- **Max 2 coverage retries** - if coverage <90% after 2 test additions, accept and note
-- **Same error = immediate escalation** - don't retry identical failures
-
-**Iteration Decision Table**:
-| Condition | Action | Max Retries |
-|-----------|--------|-------------|
-| Task failed, new error | `--resume` with fix | 3 |
-| Task failed, same error | Escalate to user | 0 |
-| Coverage <90% | `--resume` to add tests | 2 |
-| Dependency failed | Fix parent first | - |
-
-**User Decision Request** (when same error repeats):
-```
-Task [task-id] failed with repeated error.
-
-Error: [error message]
-
-Options:
-1. Skip this task and continue
-2. Manual fix (I'll handle it)
+Task [task-id] failed. Recovery options:
+1. Manual fix, then: codeagent-wrapper --resume <session_id> "fix and retry"
+2. Skip this task and continue
 3. Abort workflow
 ```
 
-#### 5.4 Exit Conditions
-
-Proceed to Step 6 when ANY of these conditions is met:
-- All tasks successful with coverage ≥90%
-- All remaining failures have user decision (skip/manual)
-- User explicitly requests to proceed
-
 ### Step 6: Completion Summary
 
-Provide final report:
-
-```
-## Development Complete
-
-### Task Summary
-| Task ID | Status | Coverage | Iterations |
-|---------|--------|----------|------------|
-| task-1  | ✓      | 92%      | 1          |
-| task-2  | ✓      | 95%      | 2          |
-| task-3  | ⚠️ Skip | -        | 3 (user)   |
-
-### Key Changes
-- [file1]: [brief description]
-- [file2]: [brief description]
-
-### Test Results
-- Total: X tests
-- Passed: Y
-- Coverage: Z%
-
-### Notes
-- [any important observations]
-- [follow-up recommendations if any]
-```
+Provide final report with: task status, coverage per task, key file changes.
 
 ---
 
@@ -301,8 +206,8 @@ Provide final report:
 
 | Error Type | Handling |
 |------------|----------|
-| **codeagent-wrapper failure** | Retry once with same input; if still fails, ask user |
-| **Insufficient coverage** | Optional: use --resume to add tests if user requests |
+| **codeagent-wrapper failure** | Retry once; if still fails, ask user |
+| **Insufficient coverage** | Request more tests (max 2 rounds); then report to user |
 | **Task execution failure** | Use --resume to fix; stop if same error repeats |
 | **Dependency failure** | Fix parent first, then retry child |
 | **Circular dependencies** | Revise task breakdown to remove cycles |
@@ -315,7 +220,6 @@ Provide final report:
 
 - Code coverage ≥90%
 - 2-5 genuinely parallelizable tasks
-- Iterate until success or same error repeats
 - Documentation must be minimal yet actionable
 - No verbose implementations; only essential code
 
@@ -325,7 +229,5 @@ Provide final report:
 
 - Be direct and concise
 - Report progress at each workflow step
-- Show iteration count for each task
 - Highlight blockers immediately
-- Provide actionable next steps
-- Request user decision only when same error repeats
+- Provide actionable next steps when coverage fails
