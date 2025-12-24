@@ -26,6 +26,12 @@
         },
         {
           "type": "copy_file",
+          "source": "skills/codex/SKILL.md",
+          "target": "skills/codex/SKILL.md",
+          "description": "Install codex skill"
+        },
+        {
+          "type": "copy_file",
           "source": "skills/product-requirements/SKILL.md",
           "target": "skills/product-requirements/SKILL.md",
           "description": "Install product-requirements skill"
