@@ -7,3 +7,8 @@
 __pycache__
 .coverage
 coverage.out
+
+# Temporary files
+*.log
+tasks_preview.txt
+test_task.txt

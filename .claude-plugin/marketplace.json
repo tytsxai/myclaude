@@ -21,7 +21,7 @@
       },
       "homepage": "https://github.com/tytsxai/myclaude",
       "repository": "https://github.com/tytsxai/myclaude",
-      "license": "MIT",
+      "license": "AGPL-3.0",
       "keywords": [
         "requirements",
         "workflow",
@@ -52,7 +52,7 @@
       },
       "homepage": "https://github.com/tytsxai/myclaude",
       "repository": "https://github.com/tytsxai/myclaude",
-      "license": "MIT",
+      "license": "AGPL-3.0",
       "keywords": [
         "bmad",
         "agile",
@@ -87,7 +87,7 @@
       },
       "homepage": "https://github.com/tytsxai/myclaude",
       "repository": "https://github.com/tytsxai/myclaude",
-      "license": "MIT",
+      "license": "AGPL-3.0",
       "keywords": [
         "code",
         "debug",
@@ -131,7 +131,7 @@
       },
       "homepage": "https://github.com/tytsxai/myclaude",
       "repository": "https://github.com/tytsxai/myclaude",
-      "license": "MIT",
+      "license": "AGPL-3.0",
       "keywords": [
         "codex",
         "code-analysis",
@@ -155,7 +155,7 @@
       },
       "homepage": "https://github.com/tytsxai/myclaude",
       "repository": "https://github.com/tytsxai/myclaude",
-      "license": "MIT",
+      "license": "AGPL-3.0",
       "keywords": [
         "gemini",
         "google-ai",
@@ -178,7 +178,7 @@
       },
       "homepage": "https://github.com/tytsxai/myclaude",
       "repository": "https://github.com/tytsxai/myclaude",
-      "license": "MIT",
+      "license": "AGPL-3.0",
       "keywords": [
         "dev",
         "workflow",
