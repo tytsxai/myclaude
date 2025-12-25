@@ -128,7 +128,7 @@ Requirements → Architecture → Sprint Plan → Development → Review → QA
 
 - **Multi-backend execution:** `codeagent-wrapper --backend codex|claude|gemini` (default `codex`) so you can match the model to the task without changing workflows.
 - **GitHub workflow commands:** `/gh-create-issue "short need"` creates structured issues; `/gh-issue-implement 123` pulls issue #123, drives development, and prepares the PR.
-- **Skills + hooks activation:** .claude/hooks run automation (tests, reviews), while `.claude/skills/skill-rules.json` auto-suggests the right skills. Keep hooks enabled in `.claude/settings.json` to activate the enterprise workflow helpers.
+- **Skills + hooks activation:** `.claude/hooks` run automation (tests, reviews), while `.claude/skills/skill-rules.json` auto-suggests the right skills. This repo includes hook scripts in `hooks/` plus an example config at `hooks/hooks-config.json` (copy into `~/.claude/settings.json`). See `docs/HOOKS.md`.
 
 ---
 
@@ -234,7 +234,7 @@ By default, myclaude installs to `~/.claude`. You can customize this using the `
 
 ```bash
 # Install to custom directory
-INSTALL_DIR=/opt/myclaude bash install.sh
+INSTALL_DIR=/opt/myclaude bash install-wrapper.sh
 
 # Update your PATH accordingly
 export PATH="/opt/myclaude/bin:$PATH"
@@ -264,7 +264,7 @@ Edit `config.json` to customize:
         {"type": "merge_dir", "source": "dev-workflow"},
         {"type": "copy_file", "source": "memorys/CLAUDE.md", "target": "CLAUDE.md"},
         {"type": "copy_file", "source": "skills/codex/SKILL.md", "target": "skills/codex/SKILL.md"},
-        {"type": "run_command", "command": "bash install.sh"}
+        {"type": "run_command", "command": "bash install-wrapper.sh"}
       ]
     }
   }
@@ -320,7 +320,7 @@ EOF
 python3 install.py --module dev
 
 # Manual
-bash install.sh
+bash install-wrapper.sh
 ```
 
 #### Windows
@@ -375,7 +375,7 @@ setx PATH "%USERPROFILE%\bin;%PATH%"
 echo $PATH | grep -q "$HOME/.claude/bin" || echo 'export PATH="$HOME/.claude/bin:$PATH"' >> ~/.zshrc
 
 # Reinstall
-bash install.sh
+bash install-wrapper.sh
 ```
 
 **Permission denied:**

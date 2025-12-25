@@ -170,7 +170,7 @@ python3 install.py --force
 
 ```bash
 # 安装到自定义目录
-INSTALL_DIR=/opt/myclaude bash install.sh
+INSTALL_DIR=/opt/myclaude bash install-wrapper.sh
 
 # 相应更新您的 PATH
 export PATH="/opt/myclaude/bin:$PATH"
@@ -200,7 +200,7 @@ export PATH="/opt/myclaude/bin:$PATH"
         {"type": "merge_dir", "source": "dev-workflow"},
         {"type": "copy_file", "source": "memorys/CLAUDE.md", "target": "CLAUDE.md"},
         {"type": "copy_file", "source": "skills/codex/SKILL.md", "target": "skills/codex/SKILL.md"},
-        {"type": "run_command", "command": "bash install.sh"}
+        {"type": "run_command", "command": "bash install-wrapper.sh"}
       ]
     }
   }
@@ -256,7 +256,7 @@ EOF
 python3 install.py --module dev
 
 # 手动
-bash install.sh
+bash install-wrapper.sh
 ```
 
 #### Windows 系统
@@ -311,7 +311,7 @@ setx PATH "%USERPROFILE%\bin;%PATH%"
 echo $PATH | grep -q "$HOME/.claude/bin" || echo 'export PATH="$HOME/.claude/bin:$PATH"' >> ~/.zshrc
 
 # 重新安装
-bash install.sh
+bash install-wrapper.sh
 ```
 
 **权限被拒绝：**
