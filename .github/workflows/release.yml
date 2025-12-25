@@ -31,6 +31,7 @@ jobs:
           go tool cover -func=cover.out | grep total
           COVERAGE=$(go tool cover -func=cover.out | grep total | awk '{print $3}' | sed 's/%//')
           echo "Coverage: ${COVERAGE}%"
+          COVERAGE="$COVERAGE" python3 -c 'import os,sys; c=float(os.environ.get("COVERAGE","0")); t=90.0; sys.exit(0) if c>=t else sys.exit("Coverage %.1f%% is below %.1f%% threshold" % (c,t))'
 
   build:
     name: Build
