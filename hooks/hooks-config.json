@@ -8,5 +8,15 @@
         }
       ]
     }
+  ],
+  "PostToolUse": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "$CLAUDE_PROJECT_DIR/hooks/post-tool-check.sh"
+        }
+      ]
+    }
   ]
 }
