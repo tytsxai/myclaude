@@ -465,8 +465,10 @@ def op_run_command(op: Dict[str, Any], ctx: Dict[str, Any]) -> None:
         env[key] = value.replace("${install_dir}", str(ctx["install_dir"]))
 
     command = op.get("command", "")
-    if sys.platform == "win32" and command.strip() == "bash install.sh":
-        command = "cmd /c install.bat"
+    if sys.platform == "win32":
+        normalized = command.strip()
+        if normalized in {"bash install.sh", "bash ./install.sh", "bash install-wrapper.sh", "bash ./install-wrapper.sh"}:
+            command = "cmd /c install.bat"
 
     # Stream output in real-time while capturing for logging
     process = subprocess.Popen(

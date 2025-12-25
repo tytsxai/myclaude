@@ -56,8 +56,8 @@
         },
         {
           "type": "run_command",
-          "command": "bash install.sh",
-          "description": "Install codeagent-wrapper binary",
+          "command": "bash install-wrapper.sh",
+          "description": "Install codeagent-wrapper binary (prefer source build; fallback to download)",
           "env": {
             "INSTALL_DIR": "${install_dir}"
           }
